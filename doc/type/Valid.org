@@ -1,0 +1,219 @@
+#+TITLE:        [[file:../index.org::*Types][type]] » Valid
+#+AUTHOR:       Jeremy Hughes
+#+EMAIL:        jedahu@gmail.com
+#+DATE:         2016-08-01 Mon
+#+HTML_LINK_UP: /
+
+#+NAME: motivation
+#+BEGIN_MOTIVATION
+- Validate a value once and once only
+- Have type-level proof that a value has been validated with a specific
+  validator
+- Statically guarantee that invalid results are handled
+#+END_MOTIVATION
+
+~Valid~ guarantees that validation occurs once and once only. It retains
+type-level proof of which validation was performed.
+
+* Correct by construction
+The ~Valid~ type is a simple wrapper. The only way to wrap something in ~Valid~
+is to supply a value and a ~Validator~ for values of that type to the ~validate~
+function. A ~Validator~ ensures only valid values are wrapped and also ensures
+that invalid values are handled. This runtime validation provides the
+compile-time guarantee that any ~Valid~ encountered in the wild contains a value
+that is valid according to supplied ~Validator~.
+
+For example, assuming a validator called ~Natural~ that ensures integer values
+are greater than zero, the types, ~Valid Natural Int~ (Purescript) and
+~Valid<Natural, int>~ (C#) can only be inhabited by a ~Valid~ value containing
+an integer greater than zero. The ~Natural~ type parameter is proof that the
+validation has occurred.
+
+* Implementations
+** Purescript implementation
+*** Valid type
+A ~Valid~ type needs to wrap a value and retain type-level information about
+which validation was used.
+#+NAME: valid-type
+#+BEGIN_SRC purescript
+  newtype Valid v a = MkValid a
+#+END_SRC
+To ensure a ~Valid~ value can be created only as the result of a validation, the
+~MkValid~ constructor will not be exported.
+
+*** Validator class
+A ~Validator~ takes a value and returns some higher kinded type parameterized by
+that value’s type.
+#+NAME: validator-class
+#+BEGIN_SRC purescript
+  class Validator v f a where
+    validator :: Proxy v -> a -> f a
+#+END_SRC
+The phantom type parameter ~v~ is essentially a type-level label for the
+~Validator~ instance, since for each ~f,a~ pair there is likely to be more than
+one possible validation.
+
+The HKT, ~f~, denotes the strategy a ~Validator~ instance uses to differentiate
+valid and invalid results.
+
+Some possibilities for ~f~ are:
+- Maybe :: ~validate~ returns ~Some (Valid v a)~ or ~Nothing~. Simple but
+     provides no reason why validation failed.
+- Either error :: ~validate~ returns ~Left error~ or ~Right (Valid v a)~. Like
+     ~Maybe~ but provides a reason for failure.
+- Validation error :: ~validate~ returns ~Failure (NonEmptyList error)~ or
+     ~Success (Valid v a)~. Like ~Either~ but accumulates errors rather than
+     stopping at the first one.
+
+*** Validate function
+The ~validate~ function takes a value, validates it using the selected
+~Validator~ instance, and wraps a valid result in the ~Valid~ type.
+#+NAME: validate-function
+#+BEGIN_SRC purescript
+  validate :: ∀ v f a. (Validator v f a, Functor f) => a -> f (Valid v a)
+  validate a = MkValid <$> validator (Proxy :: Proxy v) a
+#+END_SRC
+It constrains ~Validator~’s ~f~ to be a ~Functor~ so the ~MkValid~ constructor
+function can be mapped over the result of ~validator~.
+
+*** Complete module
+Here it is as a [[src-purs:Valid.purs][complete module]].
+#+BEGIN_SRC purescript :tangle ../../purescript/src/GetTyped/Valid.purs
+  module GetTyped.Valid
+    ( class Validator
+    , validator
+    , Valid
+    , validate
+    )
+  where
+
+  import Prelude (<$>)
+  import Type.Proxy (Proxy(..))
+
+  <<valid-type>>
+
+  <<validator-class>>
+
+  <<validate-function>>
+#+END_SRC
+
+** Flow implementation
+#+BEGIN_SRC js :tangle ../../flow/src/GetTyped/Valid.js
+  // @flow
+
+  export class Valid<V, A> {
+      value: A;
+
+      constructor(a: A) {
+          this.value = a;
+      }
+  }
+
+  function mkValid<V, A>(a: A): Valid<V, A> {
+      return new Valid(a);
+  }
+
+  export type Success<A> = {tag: "success", value: A};
+  export type Failure<E> = {tag: "failure", errors: [E]};
+  export type Validation<E, A> = Success<A> | Failure<E>;
+
+  export function success<E, A>(a: A): Validation<E, A> {
+      return {tag: "success", value: a};
+  }
+
+  export function failure<E, A>(errs: [E]): Validation<E, A> {
+      return {tag: "failure", errors: errs};
+  }
+
+  export function validationErrors<E, A>(v: Validation<E, A>): [E] {
+      return (v.tag === "failure"
+              ? v.errors
+              : []);
+  }
+
+  export function mapValidation<E, A, B>(f: (a: A) => B, v: Validation<E, A>)
+  : Validation<E, B> {
+      return (v.tag === "failure"
+              ? {tag: "failure", errors: v.errors}
+              : {tag: "success", value: f(v.value)});
+  }
+
+  export function takeLeftValidation<E, A>(l: Validation<E, A>, r: Validation<E, A>)
+  : Validation<E, A> {
+      return (l.tag === "failure" || r.tag === "failure"
+              ? failure(validationErrors(l).concat(validationErrors(r)))
+              : l);
+  }
+
+  export interface Validator<A> {
+      validator(a: A): Validation<Error, A>;
+  }
+
+  export function validate<A, V: Validator<A>>(v: V, a: A)
+  : Validation<Error, Valid<V, A>> {
+      return mapValidation(mkValid, v.validator(a));
+  }
+
+  class Integer {
+      validator(x: number): Validation<Error, number> {
+          return x % 1 === 0 ? success(x) : failure([new Error("floating")]);
+      }
+  }
+
+  class Natural {
+      validator(x: number): Validation<Error, number> {
+          return takeLeftValidation(
+              new Integer().validator(x),
+              x > 0 ? success(x) : failure([new Error("<= 0")]));
+      }
+  }
+
+  class Negative {
+      validator(x: number): Validation<Error, number> {
+          return (x > 0
+                  ? success(x)
+                  : failure([new Error("Not negative")]));
+      }
+  }
+
+  function addNats(x: Valid<Natural, number>, y: Valid<Natural, number>): number {
+      return x.value + y.value;
+  }
+#+END_SRC
+* Static guarantees
+** Statically guaranteed validity
+With ~Valid~ it is possible to ensure at compile-time that a function argument
+is valid according to a specific ~Validator~.
+
+For example:
+#+BEGIN_SRC purescript
+  data Ascii
+
+  instance asciiValidator :: Validator Ascii Maybe String where
+    validator _ name = if isOnlyAscii name then Just name else Nothing
+
+  usernameHash :: Valid Ascii String -> Int
+#+END_SRC
+
+The type ~Valid AsciiUsername String~ of the argument to ~usernameHash~
+constitutes compile-time proof that any value the function receives will be
+valid according to the ~AsciiUsername~ validator.
+
+This is because the only way to provide a ~Valid AsciiUsername String~ to
+~usernameHash~ is by calling ~validate~ on a ~String~.
+
+This would look something like:
+#+BEGIN_SRC purescript
+  map usernameHash (validate usernameString) :: Maybe Int
+#+END_SRC
+
+** Statically guaranteed invalid result handling
+In a language with higher kinds, a ~Validator~ can be written to use whichever
+result handling makes most sense by using an appropriate type constructor for
+~f~. The type of ~f~ decides what result handing is required.
+
+A polymorphic ~f~ also allows validation to be performed in an /effectful/
+context, though that can reduce the strength of the guarantee depending on what
+effects are allowed. E.g. If validity becomes time-dependent the compile-time
+guarantee is no longer a complete one, but becomes, “this value is valid
+according to ~v~ validator modulo time-dependent factors”.
