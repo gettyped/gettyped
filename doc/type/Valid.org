@@ -1,4 +1,4 @@
-#+TITLE:        [[file:../index.org::*Types][type]] » Valid
+#+TITLE:        type : Valid
 #+AUTHOR:       Jeremy Hughes
 #+EMAIL:        jedahu@gmail.com
 #+DATE:         2016-08-01 Mon
