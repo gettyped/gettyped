@@ -1,0 +1,10 @@
+#+TITLE:  list : Types
+#+AUTHOR: Jeremy Hughes
+#+EMAIL:  jedahu@gmail.com
+#+DATE:   <2016-08-04 Thu> 
+
+#+NAME: types
+#+BEGIN_BLOCK
+- [[proj:type/Valid.org][Valid]] ::
+    #+INCLUDE: Valid.org::motivation
+#+END_BLOCK

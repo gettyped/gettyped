@@ -10,5 +10,4 @@ interesting compile-time guarantees.
 * Motivations
 
 * Types
-- [[file:type/Valid.org][Valid]] ::
-    #+INCLUDE: type/Valid.org::motivation
+#+INCLUDE: type/index.org::types

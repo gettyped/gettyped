@@ -21,7 +21,7 @@
    :html-preamble nil
    :html-postamble nil
    :recursive t
-   :publishing-function org-html-publish-to-html
+   :publishing-function jdh--org-html-publish-to-html
    :preparation-function spacemacs/toggle-vim-empty-lines-mode-off
    :completion-function spacemacs/toggle-vim-empty-lines-mode-on)
   ("tangle"
