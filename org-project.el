@@ -29,15 +29,6 @@
 
 (require 'ox)
 (require 'ox-publish)
-(require 'ox-html)
-
-(defun trace-baby (f &rest args)
-  (message "ENTER: %s" args)
-  (let ((x (apply f args)))
-    (message "EXIT: %s" x)
-    x))
-
-;; (advice-add 'org-export-expand-include-keyword :around #'trace-baby)
 
 (defun gettyped--translate-org-link-html (link contents info)
   (let ((props (plist-get link 'link)))
@@ -59,6 +50,7 @@
                   (read (current-buffer))))
          (index-file (concat gettyped--root "docs/index.org"))
          (org-babel-default-header-args '((:mkdirp . "yes")
+                                          (:exports . "both")
                                           (:noweb . "yes")))
          (org-link-abbrev-alist
           '(("src-purs" . "https://github.com/gettyped/gettyped/purescript/src/GetTyped/")
@@ -82,14 +74,13 @@
          (org-export-with-toc t)
          (org-html-html5-fancy t)
          (projects (gettyped--projects)))
-    (message "publishing: %s" projects)
     (mapc
      (lambda (proj)
        (let ((props (cdr proj)))
          (plist-put props :base-directory
-                    (concat gettyped--root(plist-get props :base-directory)))
+                    (concat gettyped--root (plist-get props :base-directory)))
          (plist-put props :publishing-directory
-                    (concat gettyped--root(plist-get props :publishing-directory)))))
+                    (concat gettyped--root (plist-get props :publishing-directory)))))
      projects)
     (unwind-protect
         (with-current-buffer (find-file-noselect index-file)
