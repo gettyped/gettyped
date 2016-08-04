@@ -7,17 +7,23 @@
 
 (when noninteractive
   (require 'package)
-  (setq package-archives '(("org" . "http://orgmode.org/elpa/")))
+  (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
+  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
   (setq package-user-dir (concat gettyped--root ".elisp"))
   (package-initialize))
 
 (require 'org)
 
-(when (and noninteractive (version< org-version "8.3"))
+(when (and noninteractive
+           (or (version< org-version "8.3")
+               (not (require 'htmlize nil 'noerror))
+               (not (require 'purescript-mode nil 'noerror))))
   (message "org-version is %s. updating..." org-version)
     (message "Installing up-to-date org")
     (package-refresh-contents)
     (package-install 'org-plus-contrib)
+    (package-install 'htmlize)
+    (package-install 'purescript-mode)
     (message "org updated. please re-run")
     (kill-emacs 1))
 
@@ -39,7 +45,7 @@
         (progn (plist-put props :type "file")
                (plist-put props :path (concat "/" (plist-get props :path)))
                (replace-regexp-in-string
-                "file:///" "/"
+                "file:///\\|file://[a-zA-Z]:/" "/"
                 (org-export-with-backend 'html link contents info)))
       (org-export-with-backend 'html link contents info))))
 
