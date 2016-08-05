@@ -10,21 +10,45 @@
   (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
   (setq package-user-dir (concat gettyped--root ".elisp"))
-  (package-initialize))
+  (package-initialize)
 
-(when (and noninteractive
-           (or (not (package-installed-p 'org-plus-contrib))
-               (not (package-installed-p 'htmlize))
-               (not (package-installed-p 'purescript-mode))))
-  (message "installing required packages...")
-  (package-refresh-contents)
-  (package-install 'org-plus-contrib)
-  (package-install 'htmlize)
-  (package-install 'purescript-mode)
-  (message "...done installing"))
+  (unless (and (package-installed-p 'org-plus-contrib)
+               (package-installed-p 'htmlize)
+               (package-installed-p 'purescript-mode))
+    (message "installing required packages...")
+    (package-refresh-contents)
+    (package-install 'org-plus-contrib)
+    (package-install 'htmlize)
+    (package-install 'purescript-mode)
+    (message "...done installing")))
 
 (require 'org)
 (require 'ox-publish)
+
+(defun gettyped--next-heading-or-rule ()
+  (let ((heading (save-excursion
+                   (ignore-errors (outline-next-heading))
+                   (point)))
+        (rule (save-excursion
+               (search-forward-regexp "^-----+$")
+               (forward-line 0)
+               (point))))
+    (goto-char (min heading rule))
+    (if (< heading rule) 'heading 'rule)))
+
+(defun gettyped--org-remove-contents (backend)
+  (ignore-errors
+    (org-map-entries (lambda ()
+                       (forward-line)
+                       (when (member "nav" org-scanner-tags)
+                         (let ((beg (point)))
+                           (backward-char)
+                           (when (eq 'rule (gettyped--next-heading-or-rule))
+                             (kill-whole-line))
+                           (backward-char)
+                           (when (< beg (point))
+                             (delete-region beg (point))))))
+                     t nil)))
 
 (defun gettyped--translate-org-link-html (link contents info)
   (let ((props (plist-get link 'link)))
@@ -59,6 +83,7 @@
          (org-publish-use-timestamps-flag nil)
          (org-html-link-home "/")
          (org-export-with-smart-quotes nil)
+         (org-export-with-tags t)
          (org-export-with-emphasize t)
          (org-export-with-special-strings nil)
          (org-export-with-fixed-width t)
@@ -104,11 +129,31 @@
   (when (fboundp 'vim-empty-lines-mode)
     (global-vim-empty-lines-mode 1)))
 
+(defun org-export-collect-headlines (info &optional n scope)
+  (let* ((scope (cond ((not scope) (plist-get info :parse-tree))
+                      ((eq (org-element-type scope) 'headline) scope)
+                      ((org-export-get-parent-headline scope))
+                      (t (plist-get info :parse-tree))))
+         (limit (plist-get info :headline-levels))
+         (n (if (not (wholenump n)) limit
+              (min (if (eq (org-element-type scope) 'org-data) n
+                     (+ (org-export-get-relative-level scope info) n))
+                   limit))))
+    (org-element-map (org-element-contents scope) 'headline
+      (lambda (headline)
+        (unless (or
+                 (org-element-property :footnote-section-p headline)
+                 (member "notoc" (org-export-get-tags headline info nil t)))
+          (let ((level (org-export-get-relative-level headline info)))
+            (and (<= level n) headline))))
+      info)))
+
 (defun gettyped--projects ()
   (list
    (list "org"
          :base-extension "org"
          :base-directory "doc"
+         :exclude "^_"
          :publishing-directory "html"
          :html-doctype "html5"
          :html-preamble nil
@@ -133,6 +178,8 @@
 (org-add-link-type "proj"
                    (lambda (path)
                      (find-file (concat gettyped--root "doc" path))))
+
+(add-hook 'org-export-before-parsing-hook #'gettyped--org-remove-contents)
 
 (org-export-define-derived-backend
  'gettyped-html 'html

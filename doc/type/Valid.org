@@ -4,6 +4,9 @@
 #+DATE:         2016-08-01 Mon
 #+HTML_LINK_UP: /
 
+#+INCLUDE: _nav.org
+-----
+
 #+NAME: motivation
 #+BEGIN_MOTIVATION
 - Validate a value once and once only

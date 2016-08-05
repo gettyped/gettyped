@@ -10,4 +10,4 @@ interesting compile-time guarantees.
 * Motivations
 
 * Types
-#+INCLUDE: type/index.org::types
+#+INCLUDE: type/_toc.org
