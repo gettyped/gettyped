@@ -3,4 +3,6 @@
 #+EMAIL:  jedahu@gmail.com
 #+DATE:   <2016-08-04 Thu> 
 
+#+INCLUDE: ../_nav.org
+
 #+INCLUDE: _toc.org

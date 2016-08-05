@@ -3,6 +3,8 @@
 #+EMAIL:  jedahu@gmail.com
 #+DATE:   2016-08-01 Mon
 
+#+INCLUDE: _nav.org
+
 Strong static types aren't just for ensuring the programmer doesn't accidentally
 pass an ~int~ instead of a ~string~. They can provide greater and more
 interesting compile-time guarantees.
