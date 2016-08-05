@@ -12,22 +12,18 @@
   (setq package-user-dir (concat gettyped--root ".elisp"))
   (package-initialize))
 
-(require 'org)
-
 (when (and noninteractive
-           (or (version< org-version "8.3")
-               (not (require 'htmlize nil 'noerror))
-               (not (require 'purescript-mode nil 'noerror))))
-  (message "org-version is %s. updating..." org-version)
-    (message "Installing up-to-date org")
-    (package-refresh-contents)
-    (package-install 'org-plus-contrib)
-    (package-install 'htmlize)
-    (package-install 'purescript-mode)
-    (message "org updated. please re-run")
-    (kill-emacs 1))
+           (or (not (package-installed-p 'org-plus-contrib))
+               (not (package-installed-p 'htmlize))
+               (not (package-installed-p 'purescript-mode))))
+  (message "installing required packages...")
+  (package-refresh-contents)
+  (package-install 'org-plus-contrib)
+  (package-install 'htmlize)
+  (package-install 'purescript-mode)
+  (message "...done installing"))
 
-(require 'ox)
+(require 'org)
 (require 'ox-publish)
 
 (defun gettyped--translate-org-link-html (link contents info)
