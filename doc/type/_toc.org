@@ -1,2 +1,8 @@
+* [[proj:type/Maybe.org][Maybe /null done right/]]
+#+INCLUDE: Maybe.org::motivation
 * [[proj:type/Valid.org][Valid /validate once, retain proof/]]
 #+INCLUDE: Valid.org::motivation
+* [[proj:type/type-constructor.org][Type constructors /higher kinded abstraction/]]
+#+INCLUDE: type-constructor.org::motivation
+* [[proj:type/Monad.org][Monads]]
+#+INCLUDE: Monad.org::motivation

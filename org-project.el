@@ -8,6 +8,8 @@
 (defvar gettyped--packages
   '(org-plus-contrib
     htmlize
+    scala-mode
+    csharp-mode
     purescript-mode))
 
 (when noninteractive
@@ -171,23 +173,22 @@
          :publishing-function 'gettyped--org-html-publish-to-html
          :preparation-function 'gettyped--vim-empty-lines-off
          :completion-function 'gettyped--vim-empty-lines-on)
-   ;; (list "tangle"
-   ;;       :base-extension "org"
-   ;;       :base-directory "doc"
-   ;;       :publishing-directory "."
-   ;;       :recursive t
-   ;;       :publishing-function 'gettyped--org-babel-tangle-publish-inplace)
-   ;; (list "static"
-   ;;       :base-extension "css\|js\|png\|jpg"
-   ;;       :base-directory "doc"
-   ;;       :publishing-directory "html"
-   ;;       :recursive t
-   ;;       :publishing-function 'org-publish-attachment)))
-   ))
+   (list "tangle"
+         :base-extension "org"
+         :base-directory "doc"
+         :publishing-directory "."
+         :recursive t
+         :publishing-function 'gettyped--org-babel-tangle-publish-inplace)
+   (list "static"
+         :base-extension "css\|js\|png\|jpg"
+         :base-directory "doc"
+         :publishing-directory "html"
+         :recursive t
+         :publishing-function 'org-publish-attachment)))
 
 (org-add-link-type "proj"
                    (lambda (path)
-                     (find-file (concat gettyped--root "doc" path))))
+                     (find-file (concat gettyped--root "doc/" path))))
 
 (add-hook 'org-export-before-parsing-hook #'gettyped--org-remove-contents)
 

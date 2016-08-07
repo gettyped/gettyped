@@ -1,0 +1,126 @@
+#+TITLE:        type : Type Constructor
+#+AUTHOR:       Jeremy Hughes
+#+EMAIL:        jedahu@gmail.com
+#+DATE:        <2016-08-07 Sun> 
+
+#+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+#+NAME: motivation
+#+BEGIN_MOTIVATION
+- Allow more general abstraction
+- Reduce repetition
+#+END_MOTIVATION
+
+A value constructor is a value that takes other value(s) and returns a value,
+(~a -> b~). A type constructor is a type that takes other type(s) to make a
+type, (~* -> *~).
+
+In the type, ~List Int~, ~List~ is a type constructor that takes another type,
+~Int~, to produce the type, ~List Int~. ~Map String Int~ is another.
+
+Types that take type parameters are /higher kinded/. Values like ~Int~ and ~List
+Int~ have kind ~*~. The ~List~ type constructor has kind ~* -> *~; the ~Map~
+type construtor takes two type parameters so it has kind ~* -> * -> *~.
+
+Most languages have type systems that do not treat type constructors as first
+class types. They can abstract over types of kind ~*~ but not ~* -> *~ and
+above.
+
+* Example
+A trivial example is C#. In C# you can write an equality abstraction for types
+of kind ~*~.
+
+#+BEGIN_SRC csharp
+  interface Eq<A>
+  {
+      bool Equal(A x, A y);
+  }
+#+END_SRC
+
+In C# you cannot write a functor abstraction for types of kind ~* -> *~. (An
+abstraction for all types that can implement Linq’s ~Select~ function.)
+
+If you could it would look like this,
+
+#+NAME: functor
+#+BEGIN_SRC csharp
+  interface Functor<F>
+  {
+      F<B> Map<A, B>(Func<A, B> f, F<A> fa);
+  }
+#+END_SRC
+
+but this is not legal C# code because ~F~ cannot be used without applied type
+parameters.
+
+This is why .NET has no Linq interface and instead relies on baked-in compile
+time resolution of the “special” function signatures of ~Select~ and
+~SelectMany~.
+
+Here is what a set of Linq interfaces might look like were higher kinded types
+representable in C#:
+
+#+BEGIN_SRC csharp
+  <<functor>>
+
+  interface Apply<F>
+    : Functor<F>
+  {
+      F<B> Ap<A, B>(F<Func<A, B>> f, F<A> fa);
+  }
+
+  interface Applicative<F>
+    : Apply<F>
+  {
+      F<A> Pure<A>(A a);
+  }
+
+  interface Bind<F>
+    : Apply<F>
+  {
+      F<B> FlatMap<A, B>(Func<A, B> f, F<A> fa);
+  }
+
+  interface Monad<F>
+    : Bind<F>
+    , Applicative<F>
+  {
+  }
+#+END_SRC
+
+They could be implemented by appropriate types of kind ~* -> *~.
+
+#+BEGIN_SRC csharp
+  static unique Monad<IEnumerable>
+  {
+      IEnumerable<A> Pure<A>(A a)
+      =>  Enumerable.Repeat(1, a);
+
+      IEnumerable<B> Map<A, B>(Func<A, B> f, IEnumerable<A> fa)
+      {   foreach (var a in fa)
+          {   yield return f(a);
+          }
+      }
+
+      IEnumerable<B> FlatMap<A, B>(Func<A, IEnumerable<B>> f, IEnumerable<A> fa)
+      =>  Enumerable.Concat(Map(f, fa));
+
+      IEnumerable<B> Ap<A, B>(IEnumerable<Func<A, B>> ff, IEnumerable<A> fa)
+      =>  FlatMap(f => Map(a => f(a), fa), ff)
+  }
+#+END_SRC
+
+And functions could be written once for all “Linqable” types.
+
+#+BEGIN_SRC csharp
+  static singleton ApplicativeExtensions
+  {
+      F<A> Join<A>(F<F<A>> ffa)
+        where unique Applicative<F>
+      =>  FlatMap(x => x, ffa);
+  }
+#+END_SRC

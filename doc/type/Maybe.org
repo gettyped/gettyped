@@ -1,0 +1,109 @@
+#+TITLE:        type : Maybe
+#+AUTHOR:       Jeremy Hughes
+#+EMAIL:        jedahu@gmail.com
+#+DATE:        <2016-08-07 Sun> 
+
+#+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+#+NAME: motivation
+#+BEGIN_MOTIVATION
+- Handle optional values without guessing and without exceptions
+- Maintain type invariants in smart constructors
+#+END_MOTIVATION
+
+~Maybe~ guarantees exception free and guess free optional value handling by
+providing only one function for getting at the optional value, a function that
+requires function arguments that handle both present and absent states.
+
+* API
+- ~Maybe a~ ::
+     A type that either contains a value or doesn’t. Usually implemented as a
+     sum type with nullary and 1-ary constructors.
+- ~nothing :: Maybe a~ and ~just :: a -> Maybe a~ ::
+     The two constructors.
+- ~foldMaybe :: b -> (a -> b) -> Maybe a -> b~ ::
+     Fold over the two possible states.
+
+There is no way to dereference the Maybe-wrapped value directly. The compiler
+ensures that the ~nothing~ case is handled.
+
+* Maybe vs null checks
+Assuming the following values:
+
+#+BEGIN_SRC purescript
+  absent :: b
+  present :: a -> b
+#+END_SRC
+
+A typical null-check,
+
+#+BEGIN_SRC purescript
+  if a == null then absent else present a
+#+END_SRC
+
+exhibits a lack of type safety in two ways:
+
+- assumption ::
+     The programmer assumes ~a~ is not ~null~ and doesn’t write the null check.
+- boolean blindness ::
+     The compiler doesn’t stop accidental dereferencing, as in this
+     transposition:
+     #+BEGIN_SRC purescript
+       if a == null then present a else absent
+     #+END_SRC
+
+Boolean blindness is [[bb][well described by Robert Harper]]. Here’s the money quote:
+
+#+LINK: bb https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/
+     
+#+BEGIN_QUOTE
+Another harm is the condition of Boolean blindness alluded to earlier. Suppose
+that I evaluate the expression e=e’ to test whether e and e’ are equal. I have
+in my hand a bit. The bit itself has no intrinsic meaning; I must associate a
+provenance with that bit in order to give it meaning. “This bit being true
+means that e and e’ are equal, whereas this other bit being false means that
+some other two expressions are not equal.” Keeping track of this information
+(or attempting to recover it using any number of program analysis techniques) is
+notoriously difficult. The only thing you can do with a bit is to branch on it,
+and pretty soon you’re lost in a thicket of if-the-else’s, and you lose track
+of what’s what. Evolve the program a little, and you’re soon out to sea, and
+find yourself in need of sat solvers to figure out what the hell is going on.
+#+END_QUOTE
+
+~Maybe~ solves both issues.
+
+- assumption ::
+     The programmer cannot get at the value of a ~Maybe~ without going through
+     ~foldMaybe~.
+- boolean blindness ::
+     ~foldMayb~ provides a value only to the ~just~ case:
+     #+BEGIN_SRC purescript
+       foldMaybe absent present a
+     #+END_SRC
+     An accidental transposition results in a compile time error:
+     #+BEGIN_SRC purescript
+       foldMaybe present absent a
+       -- error: expected arg types: b     , a -> b, Maybe a
+       --                       got: a -> b, b     , Maybe a
+     #+END_SRC
+
+* Smart constructors and invariants
+~Maybe~ can be used to enforce a type’s invariants. A trivial example is a type
+for integers greater than zero.
+
+- ~Natural~ ::
+     The type of integers ~> 0~.
+- ~natural :: Int -> Maybe Natural~ ::
+     The only constructor for ~Natural~ values. It returns ~nothing~ if its
+     input is ~< 1~. This creates a compile time guarantee that ~Natural~ values
+     will always be ~> 0~.
+
+* Links
+- [[https://wiki.haskell.org/Maybe][Haskell’s Maybe]]
+- [[https://doc.rust-lang.org/std/option/][Rust’s option]]
+- [[https://fsharpforfunandprofit.com/posts/the-option-type/][F#’s Option]]
+- [[https://en.wikipedia.org/wiki/Option_type][Wikipedia on Option types]]

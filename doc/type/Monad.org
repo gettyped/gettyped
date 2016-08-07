@@ -1,0 +1,146 @@
+#+TITLE:        type : Monad
+#+AUTHOR:       Jeremy Hughes
+#+EMAIL:        jedahu@gmail.com
+#+DATE:        <2016-08-07 Sun> 
+
+#+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+#+NAME: motivation
+#+BEGIN_MOTIVATION
+- Restrict evaluation to a type constructor context
+- The type constructor determines the semantics of the evaluation
+#+END_MOTIVATION
+
+A Monad is an abstraction for [[file:type-constructor.org][type constructors]] of kind ~* -> *~.
+
+* Abstraction
+- ~pure :: a -> m a~ ::
+     Wrap a value in the monad type ~m~.
+- ~map :: (a -> b) -> m a -> m b~ ::
+     Map a function across a monad value.
+- ~flatMap :: (a -> m b) -> m a -> m b~ ::
+     Map a monad returning function across a monad value.
+
+* Example
+The simplest monad instance is the one for ~Identity~.
+
+- ~Identity a~ ::
+     A type that holds a single value of ~a~.
+- ~mkIdentity :: a -> Identity a~ ::
+     Construct an ~Identity~.
+- ~getIdentity :: Identity a -> a~ ::
+     Retrieve the wrapped value.
+
+The monad instance:
+
+#+BEGIN_SRC purescript
+  pure :: a -> Identity a
+  pure = mkIdentity
+
+  map :: (a -> b) -> Identity a -> Identity b
+  map f ia = identity (f (getIdentity ia))
+
+  flatMap :: (a -> Identity b) -> Identity a -> Identity b
+  flatMap f ia = f (getIdentity ia)
+#+END_SRC
+
+Now imagine a computation that concatenates a list of strings then evaluates
+their length.
+
+#+BEGIN_SRC purescript
+  concat :: List String -> String
+  length :: String -> Int
+
+  ss = [ "ab", "cd", "ef" ]
+  s = concat ss
+  length s
+  -- => 6
+#+END_SRC
+
+Using ~Identity~ the computation would look like this:
+
+#+BEGIN_SRC purescript
+  map (\s -> length s) (map (\ss -> concat ss) (pure [ "ab", "cd", "ef" ]))
+  -- => Identity 6
+#+END_SRC
+
+That looks ugly and gains us nothing. What if the function signatures were
+different?
+
+#+BEGIN_SRC purescript
+  concat :: List String -> Identity String
+  length :: String -> Identity Int
+
+  flatMap (s -> length s) (flatMap (\ss -> concat ss) (pure [ "ab", "cd", "ef" ]))
+  -- => Identity 6
+#+END_SRC
+
+Still ugly. All we've done is switch ~map~ for ~flatMap~. What if we alias
+~flatMap~ to an operator, ~;~?
+
+#+BEGIN_SRC purescript
+  x ; f = flatMap f x
+
+  pure [ "ab", "cd", "ef" ] ; \ss -> concat ss ; \s -> length s
+  -- => Identity 6
+#+END_SRC
+
+Add newlines and:
+
+#+BEGIN_SRC purescript
+  pure [ "ab", "cd", "ef" ];
+  \ss -> concat ss;
+  \s -> length s
+  -- => Identity 6
+#+END_SRC
+
+Compare to the initial non-identity code and you can see that ~Monad~ gives us
+programmable statements.
+
+#+BEGIN_SRC purescript
+  pure [ "ab", "cd", "ef" ];
+
+  -- Statements
+  ss = [ "ab", "cd", "ef" ]
+  s = concat ss
+  length s
+
+  -- Monadic statements
+  pure [ "ab", "cd", "ef" ];
+  \ss -> concat ss;
+  \s -> length s
+#+END_SRC
+
+Some languages provide syntax sugar for these operations. ::
+
+#+BEGIN_SRC purescript
+  -- Haskell and Purescript
+  do
+    ss <- pure [ "ab", "cd", "ef" ]
+    s  <- concat ss
+    length s
+#+END_SRC
+
+#+BEGIN_SRC scala
+  // Scala
+  for {
+    ss <- pure(List("ab", "cd", "ef"))
+    s  <- concat(ss)
+    l  <- length(s)
+  }
+  yield(l)
+#+END_SRC
+
+#+BEGIN_SRC csharp
+  // C#
+  from ss in pure(new[] {"ab", "cd", "ef"})
+  from s  in concat(ss)
+  from l  in length(s)
+  select l
+#+END_SRC
+
+So what? All we've achieved so far is another way of writing statements.
