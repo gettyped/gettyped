@@ -5,25 +5,24 @@
                                load-file-name
                                (buffer-file-name))))
 
+(defvar gettyped--packages
+  '(org-plus-contrib
+    htmlize
+    purescript-mode))
+
 (when noninteractive
   (require 'package)
   (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
   (setq package-user-dir (concat gettyped--root ".elisp"))
   (package-initialize)
-
-  (unless (and (package-installed-p 'org-plus-contrib)
-               (package-installed-p 'htmlize)
-               (package-installed-p 'purescript-mode))
-    (message "installing required packages...")
-    (package-refresh-contents)
-    (package-install 'org-plus-contrib)
-    (package-install 'htmlize)
-    (package-install 'purescript-mode)
-    (message "...done installing")))
+  (dolist (pkg gettyped--packages)
+    (unless (package-installed-p pkg)
+      (package-install pkg))))
 
 (require 'org)
 (require 'ox-publish)
+(require 'ox-html)
 
 (defun gettyped--next-heading-or-rule ()
   (let ((heading (save-excursion
@@ -36,18 +35,26 @@
     (goto-char (min heading rule))
     (if (< heading rule) 'heading 'rule)))
 
+(defun gettyped--org-skip-drawer ()
+  (search-forward-regexp "^:END:$")
+  (forward-line))
+
 (defun gettyped--org-remove-contents (backend)
+  (show-all)
   (ignore-errors
-    (org-map-entries (lambda ()
-                       (forward-line)
-                       (when (member "nav" org-scanner-tags)
-                         (let ((beg (point)))
-                           (backward-char)
-                           (when (eq 'rule (gettyped--next-heading-or-rule))
-                             (kill-whole-line))
-                           (backward-char)
-                           (when (< beg (point))
-                             (delete-region beg (point))))))
+    (org-map-entries
+     (lambda ()
+       (forward-line 0)
+       (forward-line)
+       (when (member "nav" org-scanner-tags)
+         (while (org-at-drawer-p)
+           (gettyped--org-skip-drawer))
+         (let ((beg (point)))
+           (backward-char)
+           (outline-next-heading)
+           (backward-char)
+           (when (< beg (point))
+             (delete-region beg (point))))))
                      t nil)))
 
 (defun gettyped--translate-org-link-html (link contents info)
@@ -82,6 +89,8 @@
          (org-html-htmlize-output-type 'css)
          (org-publish-use-timestamps-flag nil)
          (org-html-link-home "/")
+         (org-html-head-include-default-style nil)
+         (org-html-head-include-scripts nil)
          (org-export-with-smart-quotes nil)
          (org-export-with-tags t)
          (org-export-with-emphasize t)
@@ -162,18 +171,19 @@
          :publishing-function 'gettyped--org-html-publish-to-html
          :preparation-function 'gettyped--vim-empty-lines-off
          :completion-function 'gettyped--vim-empty-lines-on)
-   (list "tangle"
-         :base-extension "org"
-         :base-directory "doc"
-         :publishing-directory "."
-         :recursive t
-         :publishing-function 'gettyped--org-babel-tangle-publish-inplace)
-   (list "static"
-         :base-extension "css\|js\|png\|jpg"
-         :base-directory "doc"
-         :publishing-directory "html"
-         :recursive t
-         :publishing-function 'org-publish-attachment)))
+   ;; (list "tangle"
+   ;;       :base-extension "org"
+   ;;       :base-directory "doc"
+   ;;       :publishing-directory "."
+   ;;       :recursive t
+   ;;       :publishing-function 'gettyped--org-babel-tangle-publish-inplace)
+   ;; (list "static"
+   ;;       :base-extension "css\|js\|png\|jpg"
+   ;;       :base-directory "doc"
+   ;;       :publishing-directory "html"
+   ;;       :recursive t
+   ;;       :publishing-function 'org-publish-attachment)))
+   ))
 
 (org-add-link-type "proj"
                    (lambda (path)

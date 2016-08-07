@@ -1,0 +1,10 @@
+* Navigation                                                          :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: root-navigation branch-type
+:END:
+#+INCLUDE: ../_nav.org
+* Types                                                           :notoc:nav:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: branch-navigation
+:END:
+#+INCLUDE: _toc.org

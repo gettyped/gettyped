@@ -1,0 +1,2 @@
+* [[proj:type/Valid.org][Valid /validate once, retain proof/]]
+#+INCLUDE: Valid.org::motivation

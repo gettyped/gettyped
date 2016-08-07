@@ -5,8 +5,11 @@
 #+HTML_LINK_UP: /
 
 #+INCLUDE: _nav.org
------
 
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
 #+NAME: motivation
 #+BEGIN_MOTIVATION
 - Validate a value once and once only
@@ -19,6 +22,9 @@
 type-level proof of which validation was performed.
 
 * Correct by construction
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: asdf
+:END:
 The ~Valid~ type is a simple wrapper. The only way to wrap something in ~Valid~
 is to supply a value and a ~Validator~ for values of that type to the ~validate~
 function. A ~Validator~ ensures only valid values are wrapped and also ensures
@@ -76,8 +82,8 @@ The ~validate~ function takes a value, validates it using the selected
   validate :: ∀ v f a. (Validator v f a, Functor f) => a -> f (Valid v a)
   validate a = MkValid <$> validator (Proxy :: Proxy v) a
 #+END_SRC
-It constrains ~Validator~’s ~f~ to be a ~Functor~ so the ~MkValid~ constructor
-function can be mapped over the result of ~validator~.
+It constrains ~f~ to be a ~Functor~ so the ~MkValid~ constructor function can be
+mapped over the result of ~validator~.
 
 *** Complete module
 Here it is as a [[src-purs:Valid.purs][complete module]].

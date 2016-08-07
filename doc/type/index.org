@@ -3,6 +3,10 @@
 #+EMAIL:  jedahu@gmail.com
 #+DATE:   <2016-08-04 Thu> 
 
-#+INCLUDE: ../_nav.org
+#+INCLUDE: _nav.org
 
+* Types                                                               :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide listing
+:END:
 #+INCLUDE: _toc.org

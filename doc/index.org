@@ -1,15 +1,35 @@
-#+TITLE:  Home
-#+AUTHOR: Jeremy Hughes
-#+EMAIL:  jedahu@gmail.com
-#+DATE:   2016-08-01 Mon
+#+TITLE:   Home
+#+AUTHOR:  Jeremy Hughes
+#+EMAIL:   jedahu@gmail.com
+#+DATE:    2016-08-01 Mon
+#+OPTIONS: toc:1
 
+* Navigation                                                          :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: root-navigation
+:END:
 #+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
 
 Strong static types aren't just for ensuring the programmer doesn't accidentally
 pass an ~int~ instead of a ~string~. They can provide greater and more
 interesting compile-time guarantees.
 
-* Motivations
+* Motivations                                                           :nav:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: listing
+:END:
 
-* Types
+* [[proj:type/index.org][Types]]                                                                 :nav:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: listing
+:END:
 #+INCLUDE: type/_toc.org
+* Examples                                                              :nav:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: listing
+:END:
