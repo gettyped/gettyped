@@ -99,11 +99,9 @@ Add newlines and:
 #+END_SRC
 
 Compare to the initial non-identity code and you can see that ~Monad~ gives us
-programmable statements.
+what some have called, “programmable statements”.
 
 #+BEGIN_SRC purescript
-  pure [ "ab", "cd", "ef" ];
-
   -- Statements
   ss = [ "ab", "cd", "ef" ]
   s = concat ss
@@ -115,7 +113,7 @@ programmable statements.
   \s -> length s
 #+END_SRC
 
-Some languages provide syntax sugar for these operations. ::
+Some languages provide syntax sugar for these operations.
 
 #+BEGIN_SRC purescript
   -- Haskell and Purescript
