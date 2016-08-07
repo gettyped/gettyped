@@ -1,0 +1,73 @@
+#+TITLE:        type : Eff
+#+AUTHOR:       Jeremy Hughes
+#+EMAIL:        jedahu@gmail.com
+#+DATE:        <2016-08-07 Sun> 
+
+#+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+#+NAME: motivation
+#+BEGIN_MOTIVATION
+- Track effects in types
+- Interleave different types of effects
+- Restrict sections of code to a set of effects
+#+END_MOTIVATION
+
+In most languages you can write procedures that perform side-effects: reading
+and writing files, mutating variables, querying databases, etc. ~Eff~ tracks
+these effects at the type-level. This means that looking at a function's
+type-signature is enough to determine whether it or any functions it
+transitively calls performs a given type of effect.
+
+- ~Eff e a~ ::
+     The type of an effectful computation which (might) perform effects of type
+     ~e~ and returns a result of type ~a~ when run.
+
+- ~unsafePerformEffects :: Eff e a -> a~ ::
+     Run an effectful computation, returning its result. “Unsafe” because
+     doing so removes all type-level effect information. Best used only in a
+     program’s entry-points.
+
+- ~interleave :: Eff e0 a -> Eff e a~ ::
+     Interleave effects. In some languages this function is unnecessary due to
+     ~a~ being a row-type (Purescript).
+
+     In other languages (like C#), interleaving of effects requires that the
+     effects be in a subtyping hierarchy and that the ~interleave~ function
+     has an ~e : e0~ constraint.
+
+Except for ~unsafePerformEffects~, effectful computations cannot escape the ~Eff
+e~ context because the only way to interact with an ~Eff e~ context is through
+its [[file:Monad.org][Monad]] instance and the ~interleave~ function.
+
+* Example
+Imagine writing a function which for performance or security reasons must not
+touch the file system, but does output to the console and read from a cache.
+This function undoubtedly calls other functions which you do not have direct
+control of, or which someone else will some day modify. How can you ensure that
+your function never touches the file-system? Without somethig like ~Eff~, you
+have to rely on recursively reading the code of the functions your function
+calls, communicating your expectations, and running tests, none of which will
+reliably catch a filesystem access many calls below yours.
+
+If however, your function and the functions it calls use ~Eff~, the compiler
+will do all the checking for you.
+
+For example,
+
+#+BEGIN_SRC csharp
+   Eff<E, B> noFilesystemAccess(A a) where e : ConsoleEff, CacheEff;
+
+   Eff<E, A> func0() where e : ConsoleEff;
+
+   Eff<E, A> func1() where e : ConsoleEff, FilesystemEff
+#+END_SRC
+
+if ~noFilesystemAccess~ were written such that it transitively called
+~func0~, assuming no other errors it would compile because ~ConsoleEff~
+can interleave into ~ConsoleEff, CacheEff~. If the definition of ~func0~
+were changed to ~func1~, compilation would fail because ~FilesystemEff~
+cannot interleave with ~ConsoleEff, CacheEff~.

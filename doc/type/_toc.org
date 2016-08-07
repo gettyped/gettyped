@@ -2,6 +2,8 @@
 #+INCLUDE: Maybe.org::motivation
 * [[proj:type/Valid.org][Valid /validate once, retain proof/]]
 #+INCLUDE: Valid.org::motivation
+* [[proj:type/Eff.org][Eff /track and restrict effects/]]
+#+INCLUDE: Eff.org::motivation
 * [[proj:type/type-constructor.org][Type constructors /higher kinded abstraction/]]
 #+INCLUDE: type-constructor.org::motivation
 * [[proj:type/Monad.org][Monads]]
