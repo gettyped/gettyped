@@ -1,3 +1,3 @@
 #!/bin/sh
 
-emacs --batch -l org-project.el -f gettyped-publish
+emacs --batch -Q -l .orgen/orgen.el -f orgen-noninteractive-publish
