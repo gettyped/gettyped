@@ -1,5 +1,5 @@
 ("Get Typed"
- :use-timestamps t
+ :use-timestamps nil
  :babel-header-args ((:mkdirp . "yes")
                      (:exports . "both")
                      (:noweb . "yes"))
@@ -12,7 +12,9 @@
  (("src-purs" .
    "https://github.com/gettyped/gettyped/purescript/src/GetTyped/")
   ("src-flow" .
-   "https://github.com/gettyped/gettyped/flow/src/GetTyped/"))
+   "https://github.com/gettyped/gettyped/flow/src/GetTyped/")
+  ("scala-js-fiddle" .
+   "http://www.scala-js-fiddle.com/gist/1b8808f797de1909ac95371eaf1ed97b/"))
  :org-projects
  (("org"
    :base-extension "org"
@@ -27,6 +29,11 @@
    :html-link-home "/"
    :html-head-include-default-style nil
    :html-head-include-scripts nil
+   :html-head
+   "<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.css'>
+    <link rel='stylesheet' type='text/css' href='/_static/main.css'>
+    <link rel='stylesheet' type='text/css' href='/_static/htmlize.css'/>
+    <script src='/_static/main.js'></script>"
    :with-smart-quotes nil
    :with-tags t
    :with-emphasize t
@@ -34,7 +41,7 @@
    :with-fixed-width t
    :with-timestamps nil
    :preserve-breaks nil
-   :with-section-numbers nil
+   :section-numbers nil
    :with-sub-superscripts t
    :with-tables t
    :with-toc t
