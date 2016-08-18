@@ -2,58 +2,60 @@
 
 gist=$(cat ./scala/GIST_ID)
 
-make_html() {
+_make() {
     echo -e "\nBUILD: Generate HTML"
     emacs --batch -Q -l .orgen/orgen.el -f orgen-noninteractive-publish
 }
 
-push_html() {
+_push_html() {
     echo -e "\nBUILD: Publish HTML"
     (cd ./html && git add -A && git commit -m Render && git push github master)
 }
 
-push_gist() {
+_push_gist() {
     echo -e "\nBUILD: Publish Scala Gist"
     gist scala-fiddle/README.org scala-fiddle/*.scala \
          -u "$gist" \
          -d 'Get Typed (Scala)'
 }
 
-test_code() {
+_push() {
+    _push_html && _push_gist
+}
+
+_test() {
     echo -e "\nBUILD: Test Code"
     (cd ./scala && ./build.sh test)
 }
 
-serve_html() {
+_serve() {
     (cd ./html && exec caddy -port 8000)
 }
 
 go() {
     case "$1" in
-        make-html)
-            make_html || exit 1
+        make)
+            _make || exit 1
             ;;
-        push-html)
-            push_html || exit 1
+        push)
+            _push || exit 1
             ;;
         test)
-            test_code || exit 1
+            _test || exit 1
+            ;;
+        push-html)
+            _push_html || exit 1
             ;;
         push-gist)
-            push_gist || exit 1
+            _push_gist || exit 1
             ;;
-        publish-html)
-            make_html || exit 1
-            push_html || exit 1
-            ;;
-        publish-all)
-            make_html || exit 1
-            test_code || exit 1
-            push_html || exit 1
-            push_gist || exit 1
+        all)
+            _make || exit 1
+            _test || exit 1
+            _push || exit 1
             ;;
         serve)
-            serve_html
+            _serve
             ;;
     esac
 }
