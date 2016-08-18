@@ -1,0 +1,32 @@
+#+TITLE:   About Get Typed
+#+AUTHOR:  Jeremy Hughes
+#+EMAIL:   jedahu@gmail.com
+#+DATE:    <2016-08-18 Thu> 
+#+OPTIONS: toc:1
+
+* Navigation                                                          :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: root-navigation
+:END:
+#+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+
+*[[https://github.com/gettyped/gettyped]]*
+
+The site is written in [[http://orgmode.org][Org mode]] and its various components are generated from
+there.
+
+- HTML   :: Published by [[https://github.com/jedahu/orgen][Orgen]].
+- Source :: Extracted by [[http://orgmode.org/worg/org-contrib/babel/][Babel]]. Compiled and tested by [[http://www.scala-sbt.org][sbt]].
+- Demos  :: Uploaded by [[http://defunkt.io/gist/][gist]]. Run by [[http://www.scala-js-fiddle.com][Scala-Js-Fiddle]].
+
+Most examples are written in [[http://scala-lang.org][Scala]] because it has:
+- familiar syntax for most programmers,
+- convenient encoding of sum types,
+- higher kinded types,
+- at least some tail call optimization, and
+- a [[https://www.scala-js.org][Javascript backend]].

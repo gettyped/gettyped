@@ -1,7 +1,7 @@
 #+TITLE:        type : Maybe
 #+AUTHOR:       Jeremy Hughes
 #+EMAIL:        jedahu@gmail.com
-#+DATE:        <2016-08-07 Sun> 
+#+DATE:         <2016-08-07 Sun> 
 
 #+INCLUDE: _nav.org
 
@@ -19,39 +19,58 @@
 providing only one function for getting at the optional value, a function that
 requires function arguments that handle both present and absent states.
 
-* API
-- ~Maybe[A]~ ::
-     A type that either contains a value or doesn’t. Usually implemented as a
-     sum type with nullary and 1-ary constructors.
-- ~nothing: Maybe[A]~ and ~just: A => Maybe[A]~ ::
-     The two constructors.
-- ~foldMaybe: (=> B, A => B, Maybe[A]) => B~ ::
-     Fold over the two possible states.
-
-There is no way to dereference the Maybe-wrapped value directly. The compiler
-ensures that the ~nothing~ case is handled.
-
-#+NAME: Maybe
+* Implementation
+Values of src_scala{Maybe[A]} either contain a single value of ~A~ or nothing.
+#+NAME: maybe-type
 #+BEGIN_SRC scala
-  sealed abstract class Maybe[A] {
-    def fold[B](b: => B, f: A => B): B = Maybe.fold(b, f, this)
-  }
+  sealed abstract class Maybe[A]
+#+END_SRC
 
+It is usually implemented as a sum type with nullary and 1-ary “cases”.
+#+NAME: sum-cases
+#+BEGIN_SRC scala
+  private final case class Nothing[A]() extends Maybe[A] {}
+
+  private final case class Just[A](a: A) extends Maybe[A] {}
+#+END_SRC
+
+Since it makes no sense to have src_scala{Nothing[A]} and src_scala{Some[A]}
+types available, we’ll make them private and provide two constructor functions.
+
+#+NAME: constructors
+#+BEGIN_SRC scala
   object Maybe {
-    private final case class Nothing[A]() extends Maybe[A]
-
-    private final case class Just[A](value: A) extends Maybe[A]
-
     def nothing[A]: Maybe[A] = Nothing()
 
     def just[A](a: A): Maybe[A] = Just(a)
-
-    private def fold[A, B](b: => B, f: A => B, ma: Maybe[A]): B =
-      ma match {
-        case Nothing() => b
-        case Just(a)   => f(a)
-      }
   }
+#+END_SRC
+
+There is only one method with access to the private internals of
+src_scala{Maybe[A]}.
+
+#+NAME: fold
+#+BEGIN_SRC scala
+  def fold[B](b: => B, f: A => B): B = this match {
+    case Nothing() => b
+    case Just(a)   => f(a)
+  }
+#+END_SRC
+
+There is no way to dereference the Maybe-wrapped value directly. ~fold~ ensures
+that the ~Nothing~ case is handled.
+
+Here’s the complete definition.
+
+#+NAME: Maybe
+#+BEGIN_SRC scala
+  <<maybe-type>> {
+    <<fold>>
+  }
+
+  <<sum-cases>>
+
+  <<constructors>>
 #+END_SRC
 
 #+BEGIN_SRC scala :tangle ../../scala/src/Maybe.scala :exports none

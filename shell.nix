@@ -1,5 +1,5 @@
 with import <nixpkgs> {};
 stdenv.mkDerivation {
 name = "env";
-buildInputs = [emacs gist git];
+buildInputs = [caddy emacs gist git sbt];
 }

@@ -1,8 +1,9 @@
 ("Get Typed"
  :use-timestamps nil
  :babel-header-args ((:mkdirp . "yes")
-                     (:exports . "both")
+                     (:exports . "code")
                      (:noweb . "yes"))
+ :babel-inline-header-args ((:exports . "code") (:post-blank . 0))
  :require (htmlize
            scala-mode
            csharp-mode
@@ -15,6 +16,8 @@
    "https://github.com/gettyped/gettyped/flow/src/GetTyped/")
   ("scala-js-fiddle" .
    "http://www.scala-js-fiddle.com/gist/1b8808f797de1909ac95371eaf1ed97b/"))
+ :inline-code-template
+ "src_%lang[:exports code %switches%flags]{%body}" 
  :org-projects
  (("org"
    :base-extension "org"
