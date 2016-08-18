@@ -34,9 +34,8 @@ It is usually implemented as a sum type with nullary and 1-ary “cases”.
   private final case class Just[A](a: A) extends Maybe[A] {}
 #+END_SRC
 
-Since it makes no sense to have src_scala{Nothing[A]} and src_scala{Some[A]}
-types available, we’ll make them private and provide two constructor functions.
-
+Since it makes no sense to have src_scala{Nothing[A]} and src_scala{Some[A]} types available, we’ll
+make them private and provide two constructor functions.
 #+NAME: constructors
 #+BEGIN_SRC scala
   object Maybe {
@@ -46,26 +45,23 @@ types available, we’ll make them private and provide two constructor functions
   }
 #+END_SRC
 
-There is only one method with access to the private internals of
-src_scala{Maybe[A]}.
-
-#+NAME: fold
+There is only one method with access to the private internals of src_scala{Maybe[A]}.
+#+NAME: fold-method
 #+BEGIN_SRC scala
-  def fold[B](b: => B, f: A => B): B = this match {
-    case Nothing() => b
-    case Just(a)   => f(a)
+  def fold[B](nothing: => B, just: A => B): B = this match {
+    case Nothing() => nothing
+    case Just(a)   => just(a)
   }
 #+END_SRC
 
-There is no way to dereference the Maybe-wrapped value directly. ~fold~ ensures
-that the ~Nothing~ case is handled.
+There is no way to dereference the Maybe-wrapped value directly. src_scala{fold} ensures
+that the src_scala{Nothing} case is handled.
 
 Here’s the complete definition.
-
 #+NAME: Maybe
 #+BEGIN_SRC scala
   <<maybe-type>> {
-    <<fold>>
+    <<fold-method>>
   }
 
   <<sum-cases>>
@@ -92,26 +88,34 @@ Here’s the complete definition.
 * Maybe vs null checks
 Assuming the following values:
 
-#+BEGIN_SRC purescript
-  absent :: b
-  present :: a -> b
+#+NAME: case-handlers
+#+BEGIN_SRC scala
+  final case class Name(first: String, last: String)
+
+  val absent: String = "Nobody"
+
+  def present(n: Name): String = s"${n.first} ${n.last}"
 #+END_SRC
 
 A typical null-check,
 
-#+BEGIN_SRC purescript
-  if a == null then absent else present a
+#+NAME: null-check
+#+BEGIN_SRC scala
+  def describe(n: Name): String =
+    if (n == null) absent else present(n)
 #+END_SRC
 
 exhibits a lack of type safety in two ways:
 
 - assumption ::
-     The programmer assumes ~a~ is not ~null~ and doesn’t write the null check.
+     The programmer assumes src_scala{n} is not src_scala{null} and doesn’t write the null check.
 - boolean blindness ::
      The compiler doesn’t stop accidental dereferencing, as in this
      transposition:
-     #+BEGIN_SRC purescript
-       if a == null then present a else absent
+     #+NAME: transposed-null-check
+     #+BEGIN_SRC scala
+       def describeT(n: Name): String =
+         if (n == null) present(n) else absent
      #+END_SRC
 
 Boolean blindness is [[bb][well described by Robert Harper]]. Here’s the money quote:
@@ -132,33 +136,108 @@ of what’s what. Evolve the program a little, and you’re soon out to sea, and
 find yourself in need of sat solvers to figure out what the hell is going on.
 #+END_QUOTE
 
-~Maybe~ solves both issues.
+src_scala{Maybe} solves both issues.
 
 - assumption ::
-     The programmer cannot get at the value of a ~Maybe~ without going through
-     ~foldMaybe~.
+     The programmer cannot get at the value of a src_scala{Maybe} without going through
+     src_scala{Maybe.fold}.
 - boolean blindness ::
-     ~foldMayb~ provides a value only to the ~just~ case:
-     #+BEGIN_SRC purescript
-       foldMaybe absent present a
+     src_scala{Maybe.fold} provides a value only to the src_scala{just} case:
+     #+NAME: fold
+     #+BEGIN_SRC scala
+       def describe(n: Maybe[Name]): String =
+         n.fold(absent, present)
      #+END_SRC
      An accidental transposition results in a compile time error:
-     #+BEGIN_SRC purescript
-       foldMaybe present absent a
-       -- error: expected arg types: b     , a -> b, Maybe a
-       --                       got: a -> b, b     , Maybe a
+     #+NAME: transposed-fold
+     #+BEGIN_SRC scala
+       def describeT(n: Maybe[Name]): String =
+         n.fold(present, absent)
      #+END_SRC
 
+** Demos
+- [[scala-js-fiddle:Maybe_null.scala][Null-check transposition with runtime failure]]. Scala-Js-Fiddle optimizes the
+  generated Javascript, so member names in error output will not necessarily
+  match those in the source file.
+  #+BEGIN_SRC scala :tangle ../../scala-fiddle/Maybe_null.scala :exports none
+    // See https://gettyped.github.io/type/Maybe.html
+    <<Maybe>>
+
+    object ScalaJSExample extends js.JSApp {
+      <<case-handlers>>
+
+      <<null-check>>
+
+      <<transposed-null-check>>
+
+      val names: List[Name] =
+        List(
+          Name("Jane", "Doe"),
+          null,
+          Name("John", "Doe"))
+
+      def main(): Unit = {
+        println("describe")
+        names.foreach { n => println(describe(n)) }
+        println("........")
+        println("describeT")
+        names.foreach { n => println(describeT(n)) }
+      }
+    }
+  #+END_SRC
+
+- [[scala-js-fiddle:Maybe_no_null.scala][Transposition with compile time failure]]. Uncomment the indicated code to cause
+  compile errors.
+  #+BEGIN_SRC scala :tangle ../../scala-fiddle/Maybe_no_null.scala :exports none
+    // See https://gettyped.github.io/type/Maybe.html
+    <<Maybe>>
+
+    object ScalaJSExample extends js.JSApp {
+      import Maybe._
+
+      <<case-handlers>>
+
+      <<fold>>
+
+      /// Uncomment `describeT` and this file will fail to compile.
+      // <<transposed-fold>>
+
+      val names: List[Maybe[Name]] =
+        List(
+          just(Name("Jane", "Doe")),
+          nothing,
+          just(Name("John", "Doe")))
+
+      def main(): Unit = {
+        println("describe")
+        names.foreach { n => println(describe(n)) }
+      }
+    }
+  #+END_SRC
+
 * Smart constructors and invariants
-~Maybe~ can be used to enforce a type’s invariants. A trivial example is a type
+src_scala{Maybe} can be used to enforce a type’s invariants. A trivial example is a type
 for integers greater than zero.
 
-- ~Natural~ ::
-     The type of integers ~> 0~.
-- ~natural :: Int -> Maybe Natural~ ::
-     The only constructor for ~Natural~ values. It returns ~nothing~ if its
-     input is ~< 1~. This creates a compile time guarantee that ~Natural~ values
-     will always be ~> 0~.
+- src_scala{Natural} ::
+     The type of integers src_scala{> 0}.
+- src_scala{natural: Int => Maybe[Natural]} ::
+     The only constructor for src_scala{Natural} values. It returns src_scala{nothing} if its input is
+     src_scala{< 1}. This creates a compile time guarantee that src_scala{Natural} values will always
+     be src_scala{> 0}.
+
+#+BEGIN_SRC scala
+  final class Natural private(n: Int) {
+    val value: Int = n
+  }
+
+  object Natural {
+    import Maybe._
+
+    def natural(n: Int): Maybe[Natural] =
+      if (n > 0) just(Natural(n)) else nothing
+  }
+#+END_SRC
 
 * Links
 - [[https://wiki.haskell.org/Maybe][Haskell’s Maybe]]

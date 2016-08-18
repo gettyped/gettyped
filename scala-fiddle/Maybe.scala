@@ -1,7 +1,7 @@
 sealed abstract class Maybe[A] {
-  def fold[B](b: => B, f: A => B): B = this match {
-    case Nothing() => b
-    case Just(a)   => f(a)
+  def fold[B](nothing: => B, just: A => B): B = this match {
+    case Nothing() => nothing
+    case Just(a)   => just(a)
   }
 }
 
