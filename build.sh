@@ -1,5 +1,6 @@
 #!/bin/sh
 
+cmds="$@"
 gist=$(cat ./scala/GIST_ID)
 
 _make() {
@@ -32,7 +33,19 @@ _serve() {
     (cd ./html && exec caddy -port 8000)
 }
 
-go() {
+_help() {
+    echo 'COMMANDS:'
+    echo '  make       generate output from org files'
+    echo '  test       build and test generated source code'
+    echo '  push       push generated output to remote repository'
+    echo '  push-html  push generated HTML only'
+    echo '  push-gist  push generated gist source only'
+    echo '  serve      serve generated HTML using Caddy'
+    echo '  all        make && test && push'
+    echo '  help       this message'
+}
+
+_dispatch() {
     case "$1" in
         make)
             _make || exit 1
@@ -57,19 +70,24 @@ go() {
         serve)
             _serve
             ;;
+        help)
+            _help
+            ;;
     esac
+}
+
+_go() {
+    [[ -z "$cmds" ]] && cmds='make-html'
+    for cmd in $cmds
+    do
+        _dispatch "$cmd"
+    done
 }
 
 if [[ "$IN_NIX_SHELL" ]] || ! type -P nix-shell >/dev/null
 then
-    cmds="$@"
-    [[ -z "$cmds" ]] && cmds='make-html'
-    echo "CMDS: '$*'"
-    for cmd in $cmds
-    do
-        go "$cmd"
-    done
+    _go
 else
     echo 'IN_NIX_SHELL'
-    nix-shell --run "./build.sh $*"
+    nix-shell --run "$0 $*"
 fi
