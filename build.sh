@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [[ ! "$IN_NIX_SHELL" ]] && type -P nix-shell >/dev/null
+then
+    exec nix-shell --run "$0 $*"
+fi
+
 cmds="$@"
 gist=$(cat ./scala/GIST_ID)
 
@@ -30,6 +35,7 @@ _test() {
 }
 
 _serve() {
+    echo -e "\nSERVE: With Caddy"
     (cd ./html && exec caddy -port 8000)
 }
 
@@ -84,10 +90,4 @@ _go() {
     done
 }
 
-if [[ "$IN_NIX_SHELL" ]] || ! type -P nix-shell >/dev/null
-then
-    _go
-else
-    echo 'IN_NIX_SHELL'
-    nix-shell --run "$0 $*"
-fi
+_go
