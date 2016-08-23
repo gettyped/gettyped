@@ -5,6 +5,7 @@
                      (:noweb . "yes"))
  :babel-inline-header-args ((:exports . "code") (:post-blank . 0))
  :require (htmlize
+           bnfc
            scala-mode
            csharp-mode
            purescript-mode
