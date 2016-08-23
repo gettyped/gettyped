@@ -18,7 +18,13 @@
   ("scala-js-fiddle" .
    "http://www.scala-js-fiddle.com/gist/1b8808f797de1909ac95371eaf1ed97b/"))
  :org-projects
- (("org"
+ (("tangle"
+  :base-extension "org"
+  :base-directory "doc"
+  :publishing-directory "."
+  :recursive t
+  :publishing-function orgen-org-babel-tangle-publish-inplace)
+ ("org"
    :base-extension "org"
    :base-directory "doc"
    :exclude "^_"
@@ -48,12 +54,6 @@
    :with-tables t
    :with-toc t
    :html-html5-fancy t)
-  ("tangle"
-   :base-extension "org"
-   :base-directory "doc"
-   :publishing-directory "."
-   :recursive t
-   :publishing-function orgen-org-babel-tangle-publish-inplace)
   ("static"
    :base-extension "css\|js\|png\|jpg"
    :base-directory "doc"
