@@ -1,22 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-cmd="$1"
-
-go() {
-    case "$1" in
-         test)
-             sbt compile test
-             ;;
-         '')
-             sbt compile
-             ;;
-    esac
-}
-
-if [[ "$IN_NIX_SHELL" ]] || ! type -P nix-shell >/dev/null
+if [[ ! "$IN_NIX_SHELL" ]] && type -P nix-shell >/dev/null
 then
-    go "$cmd"
-else
-    echo 'IN_NIX_SHELL'
-    nix-shell --run "./build.sh $@" ../shell.nix
+    exec nix-shell --run "$0 $*" ../shell.nix
 fi
+
+case "$1" in
+    test)
+        sbt compile test
+        ;;
+    '')
+        sbt compile
+        ;;
+esac
