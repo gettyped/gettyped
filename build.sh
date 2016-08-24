@@ -10,8 +10,8 @@ gist=$(cat ./scala/GIST_ID)
 
 _make() {
     echo -e "\nBUILD: Generate HTML"
-    rm -rf ./html/_static
-    cp -r ./doc/_static ./html/
+    rm -rf ./html/static
+    cp -r ./doc/static ./html/
     emacs --batch -Q -l .orgen/orgen.el -f orgen-noninteractive-publish
 }
 

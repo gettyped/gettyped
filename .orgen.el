@@ -43,9 +43,9 @@
    :html-head-include-scripts nil
    :html-head
    "<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.css'>
-    <link rel='stylesheet' type='text/css' href='/_static/main.css'>
-    <link rel='stylesheet' type='text/css' href='/_static/htmlize.css'/>
-    <script src='/_static/main.js'></script>"
+    <link rel='stylesheet' type='text/css' href='/static/main.css'>
+    <link rel='stylesheet' type='text/css' href='/static/htmlize.css'/>
+    <script src='/static/main.js'></script>"
    :with-smart-quotes nil
    :with-tags t
    :with-emphasize t
