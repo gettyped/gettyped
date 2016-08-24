@@ -5,3 +5,4 @@
 !.orgen.el
 !.travis.yml
 /html
+/node_modules
