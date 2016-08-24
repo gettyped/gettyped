@@ -1,9 +1,13 @@
 ("Get Typed"
  :use-timestamps nil
- :babel-header-args ((:mkdirp . "yes")
-                     (:exports . "code")
-                     (:noweb . "yes"))
- :babel-inline-header-args ((:exports . "code") (:post-blank . 0))
+ :babel-header-args (((:mkdirp . "yes")
+                      (:exports . "code")
+                      (:noweb . "yes"))
+                     :sh ((:prologue . "exec 2>&1")
+                          (:epilogue . ":")
+                          (:results . "output verbatim")
+                          (:wrap . "SRC ansi")))
+ :babel-inline-header-args (((:exports . "code") (:post-blank . 0)))
  :require (htmlize
            bnfc
            scala-mode
@@ -53,10 +57,4 @@
    :with-sub-superscripts t
    :with-tables t
    :with-toc t
-   :html-html5-fancy t)
-  ("static"
-   :base-extension "css\|js\|png\|jpg"
-   :base-directory "doc"
-   :publishing-directory "html"
-   :recursive t
-   :publishing-function org-publish-attachment)))
+   :html-html5-fancy t)))
