@@ -25,6 +25,16 @@ _push_gist() {
          -d 'Get Typed (Scala)'
 }
 
+_publish() {
+    echo -e "\nPublishing to Firebase"
+    if [[ -z "$FIREBASE_TOKEN" ]]
+    then
+        firebase deploy --token "$FIREBASE_TOKEN"
+    else
+        firebase deploy
+    fi
+}
+
 _push() {
     _push_html && _push_gist
 }
@@ -46,6 +56,7 @@ _help() {
     echo '  push       push generated output to remote repository'
     echo '  push-html  push generated HTML only'
     echo '  push-gist  push generated gist source only'
+    echo '  publish    publish to firebase'
     echo '  serve      serve generated HTML using Caddy'
     echo '  all        make && test && push'
     echo '  help       this message'
@@ -61,6 +72,9 @@ _dispatch() {
             ;;
         test)
             _test || exit 1
+            ;;
+        publish)
+            _publish || exit 1
             ;;
         push-html)
             _push_html || exit 1
