@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [[ ! "$IN_NIX_SHELL" ]] && type -P nix-shell >/dev/null
 then
