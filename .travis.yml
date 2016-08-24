@@ -6,5 +6,7 @@ before_install:
   - git submodule update --init
 script: ./build.sh make
 after_success:
+  - echo "DEPLOYING"
+  - ls -R html
   - echo "$GIST_TOKEN" >~/.gist
   - ./build.sh push-gist publish
