@@ -1,4 +1,9 @@
 language: nix
+git:
+  submodules: false
+before_install:
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init
 script: ./build.sh make
 after_success:
   - echo "$GIST_TOKEN" >~/.gist
