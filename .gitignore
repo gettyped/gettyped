@@ -3,4 +3,5 @@
 !.gitignore
 !.orgen
 !.orgen.el
+!.travis.yml
 /html
