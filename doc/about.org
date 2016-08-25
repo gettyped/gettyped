@@ -34,3 +34,5 @@ Most examples are written in [[http://scala-lang.org][Scala]] because it has:
 - higher kinded types,
 - at least some tail call optimization, and
 - a [[https://www.scala-js.org][Javascript backend]].
+
+Latest Scala source is available in [[//gettyped.tar.gz][tar]] and [[//gettyped.zip][zip]] archives.

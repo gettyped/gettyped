@@ -4,7 +4,7 @@ git:
 before_install:
   - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
   - git submodule update --init
-script: ./build.sh make test
+script: ./build.sh make archive test
 after_success:
   - echo "DEPLOYING"
   - ls -R html

@@ -8,28 +8,43 @@ fi
 cmds="$@"
 gist=$(cat ./scala/GIST_ID)
 
-_make() {
-    echo -e "\nBUILD: Generate HTML"
+_msg() {
+    echo -e "\nBUILD: $1"
+}
+
+_clean_all() {
     rm -rf ./html
-    mkdir ./html
+    rm -rf ./scala
+    rm -rf ./scala-fiddle
+}
+
+_copy_static() {
+    rm -rf ./html/static
+    mkdir -p ./html
     cp -R ./doc/static ./html/
+}
+
+_org_html() {
+    _msg 'Generate from Org files'
+    rm -rf ./html
+    _copy_static
     emacs --batch -Q -l .orgen/orgen.el -f orgen-noninteractive-publish
 }
 
-_push_html() {
-    echo -e "\nBUILD: Publish HTML"
+_push_github() {
+    _msg 'Push to Github'
     (cd ./html && git add -A && git commit -m Render && git push github master)
 }
 
 _push_gist() {
-    echo -e "\nBUILD: Publish Scala Gist"
+    _msg 'Push gists'
     gist scala-fiddle/README.org scala-fiddle/*.scala \
          -u "$gist" \
          -d 'Get Typed (Scala)'
 }
 
-_publish() {
-    echo -e "\nPublishing to Firebase"
+_push_firebase() {
+    _msg 'Push to Firebase'
     if [[ -z "$FIREBASE_TOKEN" ]]
     then
         firebase deploy --token "$FIREBASE_TOKEN"
@@ -39,36 +54,69 @@ _publish() {
 }
 
 _push() {
-    _push_html && _push_gist
+    _push_firebase && _push_gist
 }
 
 _test() {
-    echo -e "\nBUILD: Test Code"
-    (cd ./scala && ./build.sh test)
+    _msg 'Run tests'
+    (cd ./scala && sbt compile test)
 }
 
-_serve() {
-    echo -e "\nSERVE: With Caddy"
+_tar_src() {
+    _msg 'Tar source'
+    rm -rf ./html/gettyped.tar.gz
+    tar -c ./scala | gzip > ./html/gettyped.tar.gz
+}
+
+_zip_src() {
+    _msg 'Zip source'
+    rm -rf ./html/gettyped.zip
+    zip -r ./html/gettyped.zip ./scala
+}
+
+_archive_src() {
+    _tar_src && _zip_src
+}
+
+_caddy() {
+    _msg 'Serve with Caddy'
     (cd ./html && exec caddy -port 8000)
 }
 
 _help() {
     echo 'COMMANDS:'
-    echo '  make       generate output from org files'
-    echo '  test       build and test generated source code'
-    echo '  push       push generated output to remote repository'
-    echo '  push-html  push generated HTML only'
-    echo '  push-gist  push generated gist source only'
-    echo '  publish    publish to firebase'
-    echo '  serve      serve generated HTML using Caddy'
-    echo '  all        make && test && push'
-    echo '  help       this message'
+    echo '  copy-static    copy static files to output'
+    echo '  make           generate output from org files'
+    echo '  test           build and test generated source code'
+    echo '  push           default push (push-gist && push-firebase)'
+    echo '  push-github    push site to github'
+    echo '  push-gist      push generated gist source to github'
+    echo '  push-firebase  push site to firebase including src archives'
+    echo '  tar            tar generated source'
+    echo '  zip            zip generated source'
+    echo '  archive        tar and zip generated source'
+    echo '  serve          serve generated HTML using Caddy'
+    echo '  all            make && test && push'
+    echo '  clean-all      remove all generated files'
+    echo '  help           this message'
 }
 
 _dispatch() {
     case "$1" in
+        copy-static)
+            _copy_static || exit 1
+            ;;
         make)
-            _make || exit 1
+            _org_html || exit 1
+            ;;
+        push-github)
+            _push_github || exit 1
+            ;;
+        push-gist)
+            _push_gist || exit 1
+            ;;
+        push-firebase)
+            _push_firebase || exit 1
             ;;
         push)
             _push || exit 1
@@ -76,22 +124,25 @@ _dispatch() {
         test)
             _test || exit 1
             ;;
-        publish)
-            _publish || exit 1
-            ;;
-        push-html)
-            _push_html || exit 1
-            ;;
-        push-gist)
-            _push_gist || exit 1
-            ;;
         all)
-            _make || exit 1
+            _org_html || exit 1
+            _archive_src || exit 1
             _test || exit 1
-            _push || exit 1
+            ;;
+        tar)
+            _tar_src || exit 1
+            ;;
+        zip)
+            _zip_src || exit 1
+            ;;
+        archive)
+            _archive_src || exit 1
             ;;
         serve)
-            _serve
+            _caddy
+            ;;
+        clean-all)
+            _clean_all || exit 1
             ;;
         help)
             _help

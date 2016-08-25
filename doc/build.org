@@ -1,0 +1,42 @@
+#+TITLE:  Build
+#+AUTHOR: Jeremy Hughes
+#+EMAIL:  jedahu@gmail.com
+#+DATE:   [2016-08-25 Thu]
+
+* build.sbt
+#+BEGIN_SRC scala :tangle ../scala/build.sbt
+  enablePlugins(ScalaJSPlugin)
+
+  name := "Get Typed (Scala)"
+
+  scalaVersion := "2.11.8"
+
+  scalaSource in Compile := baseDirectory.value / "src"
+  scalaSource in Test := baseDirectory.value / "test"
+#+END_SRC
+
+* project/build.properties
+#+BEGIN_SRC :tangle ../scala/project/build.properties
+sbt.version=0.13.12
+#+END_SRC
+
+* project/plugins.sbt
+#+BEGIN_SRC scala :tangle ../scala/project/plugins.sbt
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.11")
+#+END_SRC
+
+* GIST_ID
+#+BEGIN_SRC text :tangle ../scala/GIST_ID
+  1b8808f797de1909ac95371eaf1ed97b
+#+END_SRC
+
+* shell.nix
+#+BEGIN_SRC nix :tangle ../scala/shell.nix
+  with import <nixpkgs> {};
+  stdenv.mkDerivation {
+    name = "env";
+    buildInputs = [sbt];
+    shellHook = ''
+    '';
+  }
+#+END_SRC
