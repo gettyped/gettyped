@@ -2,7 +2,6 @@
 #+AUTHOR:       Jeremy Hughes
 #+EMAIL:        jedahu@gmail.com
 #+DATE:         2016-08-01 Mon
-#+HTML_LINK_UP: /
 
 #+INCLUDE: _nav.org
 
@@ -18,92 +17,94 @@
 - Statically guarantee that invalid results are handled
 #+END_MOTIVATION
 
-~Valid~ guarantees that validation occurs once and once only. It retains
+src_scala{Valid} guarantees that validation occurs once and once only. It retains
 type-level proof of which validation was performed.
 
 * Correct by construction
 :PROPERTIES:
 :HTML_CONTAINER_CLASS: asdf
 :END:
-The ~Valid~ type is a simple wrapper. The only way to wrap something in ~Valid~
-is to supply a value and a ~Validator~ for values of that type to the ~validate~
-function. A ~Validator~ ensures only valid values are wrapped and also ensures
+The src_scala{Valid} type is a simple wrapper. The only way to wrap something in src_scala{Valid} is
+to supply a value and a src_scala{Validator} for values of that type to the src_scala{validate}
+function. A src_scala{Validator} ensures only valid values are wrapped and also ensures
 that invalid values are handled. This runtime validation provides the
-compile-time guarantee that any ~Valid~ encountered in the wild contains a value
-that is valid according to supplied ~Validator~.
+compile-time guarantee that any src_scala{Valid} encountered in the wild contains a value
+that is valid according to supplied src_scala{Validator}.
 
-For example, assuming a validator called ~Natural~ that ensures integer values
-are greater than zero, the types, ~Valid Natural Int~ (Purescript) and
-~Valid<Natural, int>~ (C#) can only be inhabited by a ~Valid~ value containing
-an integer greater than zero. The ~Natural~ type parameter is proof that the
-validation has occurred.
+For example, assuming a validator called src_scala{Natural} that ensures integer values are
+greater than zero, the type, src_scala{Valid[Natural, Int]} can only be inhabited by a
+src_scala{Valid} value containing an integer greater than zero. The src_scala{Natural} type parameter
+is proof that the validation has occurred.
 
 * Implementations
 ** Purescript implementation
 *** Valid type
-A ~Valid~ type needs to wrap a value and retain type-level information about
+A src_scala{Valid} type needs to wrap a value and retain type-level information about
 which validation was used.
 #+NAME: valid-type
-#+BEGIN_SRC purescript
-  newtype Valid v a = MkValid a
+#+BEGIN_SRC scala
+  final class Valid[V[_], A] private(a: A) {
+    val value: A = a
+  }
 #+END_SRC
-To ensure a ~Valid~ value can be created only as the result of a validation, the
-~MkValid~ constructor will not be exported.
+To ensure a src_scala{Valid} value can be created only as the result of a validation, the
+the constructor is private.
 
 *** Validator class
-A ~Validator~ takes a value and returns some higher kinded type parameterized by
+A src_scala{Validator} takes a value and returns some higher kinded type parameterized by
 that value’s type.
-#+NAME: validator-class
-#+BEGIN_SRC purescript
-  class Validator v f a where
-    validator :: Proxy v -> a -> f a
-#+END_SRC
-The phantom type parameter ~v~ is essentially a type-level label for the
-~Validator~ instance, since for each ~f,a~ pair there is likely to be more than
-one possible validation.
+#+NAME: validator-trait
+#+BEGIN_SRC scala
+  trait Validator[A] {
+    type F[_]
 
-The HKT, ~f~, denotes the strategy a ~Validator~ instance uses to differentiate
+    def validate(a: A): F[A]
+  }
+#+END_SRC
+
+The HKT, src_scala{F[_]} denotes the strategy a src_scala{Validator} instance uses to differentiate
 valid and invalid results.
 
 Some possibilities for ~f~ are:
-- Maybe :: ~validate~ returns ~Some (Valid v a)~ or ~Nothing~. Simple but
-     provides no reason why validation failed.
-- Either error :: ~validate~ returns ~Left error~ or ~Right (Valid v a)~. Like
-     ~Maybe~ but provides a reason for failure.
-- Validation error :: ~validate~ returns ~Failure (NonEmptyList error)~ or
-     ~Success (Valid v a)~. Like ~Either~ but accumulates errors rather than
-     stopping at the first one.
+- src_scala{Maybe[_]} ::
+     src_scala{validate} returns src_scala{some(Valid[V, A])} or src_scala{nothing}. Simple but provides no
+     reason why validation failed.
+- src_scala{Either[Error, _]} ::
+     src_scala{validate} returns src_scala{left(Error)} or src_scala{right(Valid[V, A])}. Like src_scala{Maybe[_]} but
+     provides a reason for failure.
+- src_scala{Validation[Error, _]} ::
+     src_scala{validate} returns src_scala{failure(NonEmptyList[Error])} or src_scala{success(Valid[V, A])}. Like
+     src_scala{Either[Error, _]} but accumulates errors rather than stopping at the first
+     one.
 
-*** Validate function
-The ~validate~ function takes a value, validates it using the selected
-~Validator~ instance, and wraps a valid result in the ~Valid~ type.
-#+NAME: validate-function
-#+BEGIN_SRC purescript
-  validate :: ∀ v f a. (Validator v f a, Functor f) => a -> f (Valid v a)
-  validate a = MkValid <$> validator (Proxy :: Proxy v) a
+*** Validing constructor
+The constructor takes a value, validates it using the selected src_scala{Validator}
+instance, and wraps a valid result in the src_scala{Valid} type.
+#+NAME: valid-constructor
+#+BEGIN_SRC scala
+  object Valid {
+    private def mkValid[V[A] <: Validator[A], A](a: A): Valid[V, A] =
+      new Valid(a)
+
+    def apply[V[A] <: Validator[A], A](a: A, v: V[A])
+        (implicit F: Functor[v.F])
+        : v.F[Valid[V, A]] =
+      F.map(mkValid[V, A])(v.validate(a))
+  }
 #+END_SRC
-It constrains ~f~ to be a ~Functor~ so the ~MkValid~ constructor function can be
-mapped over the result of ~validator~.
+It constrains src_scala{F} to be a src_scala{Functor} so the src_scala{mkValid} constructor function can be
+mapped over the result of src_scala{Validator.validate}.
 
 *** Complete module
 Here it is as a [[src-purs:Valid.purs][complete module]].
-#+BEGIN_SRC purescript :tangle ../../purescript/src/GetTyped/Valid.purs
-  module GetTyped.Valid
-    ( class Validator
-    , validator
-    , Valid
-    , validate
-    )
-  where
-
-  import Prelude (<$>)
-  import Type.Proxy (Proxy(..))
+#+BEGIN_SRC scala :tangle ../../scala/src/gettyped/Valid.scala
+  package gettyped
 
   <<valid-type>>
 
-  <<validator-class>>
+  <<validator-trait>>
 
-  <<validate-function>>
+  <<valid-constructor>>
 #+END_SRC
 
 ** Flow implementation

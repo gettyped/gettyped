@@ -1,7 +1,7 @@
 #+TITLE:        type : Maybe
 #+AUTHOR:       Jeremy Hughes
 #+EMAIL:        jedahu@gmail.com
-#+DATE:         <2016-08-07 Sun> 
+#+DATE:         <2016-08-25 Thu> 
 
 #+INCLUDE: _nav.org
 
@@ -19,13 +19,21 @@
 providing only one function for getting at the optional value, a function that
 requires function arguments that handle both present and absent states.
 
+#+BEGIN_TYPE_INFO
+- type :: src_scala{Maybe[A]}
+- impl :: [[https://hackage.haskell.org/package/base/docs/Data-Maybe.html][Haskell]]([[https://hackage.haskell.org/package/base/docs/src/Data.Maybe.html][src]]), [[https://doc.rust-lang.org/std/option/][Rust]]([[https://doc.rust-lang.org/src/core/up/src/libcore/option.rs.html][src]]), [[https://msdn.microsoft.com/en-us/visualfsharpdocs/conceptual/core.option-module-%5Bfsharp%5D][F#]]([[https://github.com/fsharp/fsharp/blob/master/src/fsharp/FSharp.Core/option.fs][src]])
+- docs :: [[https://wiki.haskell.org/Maybe][Haskell wiki]], [[https://fsharpforfunandprofit.com/posts/the-option-type/][F# post]], [[https://en.wikipedia.org/wiki/Option_type][Wikipedia]]
+#+END_TYPE_INFO
+
 * Implementation
+** Type
 Values of src_scala{Maybe[A]} either contain a single value of ~A~ or nothing.
 #+NAME: maybe-type
 #+BEGIN_SRC scala
   sealed abstract class Maybe[A]
 #+END_SRC
 
+** Cases
 It is usually implemented as a sum type with nullary and 1-ary “cases”.
 #+NAME: sum-cases
 #+BEGIN_SRC scala
@@ -34,6 +42,7 @@ It is usually implemented as a sum type with nullary and 1-ary “cases”.
   private final case class Just[A](a: A) extends Maybe[A] {}
 #+END_SRC
 
+** Constructors
 Since it makes no sense to have src_scala{Nothing[A]} and src_scala{Some[A]} types available, we’ll
 make them private and provide two constructor functions.
 #+NAME: constructors
@@ -45,6 +54,7 @@ make them private and provide two constructor functions.
   }
 #+END_SRC
 
+** Fold method
 There is only one method with access to the private internals of src_scala{Maybe[A]}.
 #+NAME: fold-method
 #+BEGIN_SRC scala
@@ -57,9 +67,12 @@ There is only one method with access to the private internals of src_scala{Maybe
 There is no way to dereference the Maybe-wrapped value directly. src_scala{fold} ensures
 that the src_scala{Nothing} case is handled.
 
+** Complete
 Here’s the complete definition.
 #+NAME: Maybe
-#+BEGIN_SRC scala
+#+BEGIN_SRC scala :tangle ../../scala/src/gettyped/Maybe.scala
+  package gettyped
+
   <<maybe-type>> {
     <<fold-method>>
   }
@@ -67,12 +80,6 @@ Here’s the complete definition.
   <<sum-cases>>
 
   <<constructors>>
-#+END_SRC
-
-#+BEGIN_SRC scala :tangle ../../scala/src/Maybe.scala :exports none
-  package gettyped
-
-  <<Maybe>>
 #+END_SRC
 
 #+BEGIN_SRC scala :tangle ../../scala-fiddle/Maybe.scala :exports none
@@ -85,7 +92,7 @@ Here’s the complete definition.
   }
 #+END_SRC
 
-* Maybe vs null checks
+* Maybe vs null
 Assuming the following values:
 
 #+NAME: case-handlers
@@ -154,6 +161,42 @@ src_scala{Maybe} solves both issues.
        def describeT(n: Maybe[Name]): String =
          n.fold(present, absent)
      #+END_SRC
+
+** Type-level honesty
+src_scala{null} is not a src_scala{String} but the Scala compiler treats it as a valid inhabitant of
+the src_scala{String} type. This is the case for all reference types in Scala, C#, Java,
+and most languages.
+
+It is an enormous hole in the type safety of these languages. Their compilers
+will not allow a src_scala{String} method call on a src_scala{Date} value, but they will allow the
+same method call on a src_scala{null} value as long as it is typed as a src_scala{String}. Calling
+src_scala{String.replace()} on a src_scala{Date} will be caught at compile time but calling it on src_scala{null}
+will not.
+
+src_scala{null} inhabiting all reference types creats problems at function boundaries. It
+makes it impossible to declare to the compiler that a function /does not/ take or
+return src_scala{null}. This means that:
+- Callers don’t know if src_scala{null} is an acceptable argument value.
+- Callers don’t know if the function might return src_scala{null}.
+- Function implementation must account for src_scala{null} inputs whether or not they are
+  supposed to be part of the function domain.
+
+These issues are dealt with usually by:
+- Defensively throwing errors on unacceptable src_scala{null} inputs.
+- Assuming return values are not-null unless the documentation says otherwise.
+
+The core failure here is that neither the programmer nor the compiler can tell
+whether src_scala{Func[RefType, RefType]} accepts or returns src_scala{null} values.
+
+If src_scala{null} did not exist, there would be no confusion. src_scala{Type} would represent a set
+of values exclusive of src_scala{null}, and src_scala{Maybe[Type]} the same set plus the src_scala{nothing}
+value. There would be no ambiguity at function boundaries.
+
+For honest reference types:
+- Write as if src_scala{null} does not exist.
+- Use src_scala{Maybe} for optional values.
+- Convert between (possibly src_scala{null}) src_scala{A} and src_scala{Maybe[A]} at the boundaries of “honest”
+  and “dishonest” code.
 
 ** Demos
 - [[scala-js-fiddle:Maybe_null.scala][Null-check transposition with runtime failure]]. Scala-Js-Fiddle optimizes the
@@ -238,9 +281,3 @@ for integers greater than zero.
       if (n > 0) just(Natural(n)) else nothing
   }
 #+END_SRC
-
-* Links
-- [[https://wiki.haskell.org/Maybe][Haskell’s Maybe]]
-- [[https://doc.rust-lang.org/std/option/][Rust’s option]]
-- [[https://fsharpforfunandprofit.com/posts/the-option-type/][F#’s Option]]
-- [[https://en.wikipedia.org/wiki/Option_type][Wikipedia on Option types]]

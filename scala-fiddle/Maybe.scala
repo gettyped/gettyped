@@ -1,3 +1,5 @@
+package gettyped
+
 sealed abstract class Maybe[A] {
   def fold[B](nothing: => B, just: A => B): B = this match {
     case Nothing() => nothing

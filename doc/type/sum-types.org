@@ -1,0 +1,125 @@
+#+TITLE:  type : Sum Types
+#+AUTHOR: Jeremy Hughes
+#+EMAIL:  jedahu@gmail.com
+#+DATE:   <2016-08-25 Thu> 
+
+#+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+#+NAME: motivation
+#+BEGIN_MOTIVATION
+- Clearly separate a type’s “cases” or “states”.
+- Pattern match on those cases.
+- Prove exhaustive case matching.
+#+END_MOTIVATION
+
+#+BEGIN_SRC bnfc
+  Expr = Int
+       | (Expr + Expr)
+       | (Expr * Expr)
+#+END_SRC
+
+#+BEGIN_SRC purescript
+  data Expr = Num Int
+            | Add Expr Expr
+            | Mult Expr Expr
+
+  eval :: Expr -> Int
+  eval (Num n)    = n
+  eval (Add a b)  = eval a + eval b
+  eval (Mult a b) = eval a * eval b
+#+END_SRC
+
+#+BEGIN_SRC scala
+  sealed trait Expr {
+    def eval(): Int = this match {
+      case Num(n) => n
+      case Add(a, b) => a.eval() + b.eval()
+      case Mult(a, b) => a.eval() * b.eval()
+    }
+  }
+
+  final case class Num(n: Int) extends Expr
+  final case class Add(a: Expr, b: Expr) extends Expr
+  final case class Mult(a: Expr, b: Expr) extends Expr
+#+END_SRC
+
+#+BEGIN_SRC csharp
+  public abstract class Expr {
+      private Expr() {}
+
+      public A Fold<A>(
+          Func<int, A> num,
+          Func<int, int, A> add,
+          Func<int, int, A> mult)
+      =>
+          this is Num
+          ? num(((Num)this).Value)
+
+          : this is Add
+          ? add(((Add)this).Fst, ((Add)this).Snd)
+
+          // this is Mult
+          : add(((Mult)this).Fst, ((Mult)this).Snd);
+
+      public int Eval()
+      =>
+          Fold(
+              n => n,
+              (a, b) => a.Eval() + b.Eval(),
+              (a, b) => a.Eval() * b.Eval());
+
+      public sealed class Num : Expr {
+          public Num(int n) {
+              Value = n;
+          }
+
+          public int Value { get; }
+      }
+
+      public sealed class Add : Expr {
+          public Add(Expr a, Expr b) {
+              Fst = a;
+              Snd = b;
+          }
+
+          public Expr Fst { get; }
+          public Expr Snd { get; }
+      }
+
+      public sealed class Mult : Expr {
+          public Mult(Expr a, Expr b) {
+              Fst = a;
+              Snd = b;
+          }
+
+          public Expr Fst { get; }
+          public Expr Snd { get; }
+      }
+  }
+#+END_SRC
+
+#+BEGIN_SRC javascript
+  class Expr {
+      constructor(tag, value) {
+          this.tag = tag;
+          this.value = value;
+      }
+
+      fold(num, add, mult) {
+          switch (this.tag) {
+          case 'Num': return num(this.value);
+          case 'Add': return add(this.value[0], this.value[1]);
+          case 'Mult': return mult(this.value[0], this.value[1]);
+          default: throw "Invalid Case.";
+          }
+      }
+
+      eval() {
+          return fold(n => n, (a, b) => a + b, (a, b) => a * b);
+      }
+  }
+#+END_SRC

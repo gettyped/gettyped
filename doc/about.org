@@ -1,8 +1,8 @@
 #+TITLE:   About Get Typed
 #+AUTHOR:  Jeremy Hughes
 #+EMAIL:   jedahu@gmail.com
-#+DATE:    <2016-08-18 Thu> 
-#+OPTIONS: toc:1
+#+DATE:    [2016-08-25 Thu]
+#+OPTIONS: toc:2
 
 * Navigation                                                          :notoc:
 :PROPERTIES:
@@ -17,12 +17,16 @@
 
 *[[https://github.com/gettyped/gettyped]]*
 
+[[https://travis-ci.org/gettyped/gettyped][https://travis-ci.org/gettyped/gettyped.png]]
+
 The site is written in [[http://orgmode.org][Org mode]] and its various components are generated from
 there.
 
+#+BEGIN_INFO
 - HTML   :: Published by [[https://github.com/jedahu/orgen][Orgen]].
 - Source :: Extracted by [[http://orgmode.org/worg/org-contrib/babel/][Babel]]. Compiled and tested by [[http://www.scala-sbt.org][sbt]].
 - Demos  :: Uploaded by [[http://defunkt.io/gist/][gist]]. Run by [[http://www.scala-js-fiddle.com][Scala-Js-Fiddle]].
+#+END_INFO
 
 Most examples are written in [[http://scala-lang.org][Scala]] because it has:
 - familiar syntax for most programmers,

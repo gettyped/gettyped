@@ -1,0 +1,65 @@
+#+TITLE:  type : Maybe
+#+AUTHOR: Jeremy Hughes
+#+EMAIL:  jedahu@gmail.com
+#+DATE:   <2016-08-25 Thu> 
+
+#+INCLUDE: _nav.org
+
+* Introduction                                                        :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+#+NAME: motivation
+#+BEGIN_MOTIVATION
+#+END_MOTIVATION
+
+* Type class
+#+NAME: Functor_type
+#+BEGIN_SRC scala :exports none
+  trait Functor[F[_]]
+#+END_SRC
+
+#+NAME: Functor_map
+#+BEGIN_SRC scala :exports none
+  def map[A, B](f: A => B)(fa: F[A]): F[B]
+
+  def <%>[A, B](f: A => B)(fa: F[A]): F[B] = map(f)(fa)
+#+END_SRC
+
+#+NAME: Functor_trait
+#+BEGIN_SRC scala
+  <<Functor_type>> {
+    <<Functor_map>>
+  }
+#+END_SRC
+
+* Instances
+** Maybe
+#+BEGIN_SRC scala
+  object MaybeFunctor extends Functor[Maybe] {
+    import Maybe._
+
+    def map[A, B](f: A => B)(fa: Maybe[A]): Maybe[B] = fa.fold(nothing, f)
+  }
+#+END_SRC
+
+* Functions
+#+NAME: Functor_methods
+#+BEGIN_SRC scala
+  def mapUnit[A](fa: F[A]): F[Unit] =
+    map((_: A) => ())(fa)
+#+END_SRC
+
+* Tangle                                                              :notoc:
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: hide
+:END:
+#+BEGIN_SRC scala :tangle ../../scala/src/gettyped/Functor.scala :exports none
+  package gettyped
+
+  <<Functor_type>> {
+    <<Functor_map>>
+
+    <<Functor_methods>>
+  }
+#+END_SRC

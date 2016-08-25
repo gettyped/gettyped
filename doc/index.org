@@ -1,7 +1,7 @@
 #+TITLE:   Get Typed
 #+AUTHOR:  Jeremy Hughes
 #+EMAIL:   jedahu@gmail.com
-#+DATE:    2016-08-01 Mon
+#+DATE:    [2016-08-25 Thu]
 #+OPTIONS: toc:1
 
 * Navigation                                                          :notoc:
@@ -31,6 +31,7 @@ interesting compile-time guarantees.
 :HTML_CONTAINER_CLASS: listing
 :END:
 #+INCLUDE: type/_toc.org
+
 * Examples                                                              :nav:
 :PROPERTIES:
 :HTML_CONTAINER_CLASS: listing
