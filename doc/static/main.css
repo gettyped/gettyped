@@ -1,4 +1,4 @@
-/*
+/* * Skeleton
 * Skeleton V2.0.4
 * Copyright 2014, Dave Gamache
 * www.getskeleton.com
@@ -10,7 +10,7 @@
 @import 'https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Merriweather:400,700|Inconsolata';
 
 
-/* Base Styles
+/* ** Base Styles
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 /* NOTE
 html is set to 62.5% so that all the REM measurements throughout Skeleton
@@ -25,7 +25,7 @@ body {
   color: #222; }
 
 
-/* Typography
+/* ** Typography
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
@@ -55,7 +55,7 @@ p {
   margin-top: 0; }
 
 
-/* Links
+/* ** Links
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 a {
   color: #1EAEDB; }
@@ -63,7 +63,7 @@ a:hover {
   color: #0FA0CE; }
 
 
-/* Buttons
+/* ** Buttons
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .button,
 button,
@@ -123,7 +123,7 @@ input[type="button"].button-primary:focus {
   border-color: #1EAEDB; }
 
 
-/* Forms
+/* ** Forms
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 input[type="email"],
 input[type="number"],
@@ -185,7 +185,7 @@ label > .label-body {
   font-weight: normal; }
 
 
-/* Lists
+/* ** Lists
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 ul {
   list-style: circle outside;
@@ -208,7 +208,7 @@ li {
 dt { font-weight: bold; }
 
 
-/* Code
+/* ** Code
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 code {
   font-family: Inconsolata, monospace;
@@ -225,7 +225,7 @@ pre > code {
   white-space: pre; }
 
 
-/* Tables
+/* ** Tables
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 th,
 td {
@@ -240,7 +240,7 @@ td:last-child {
   padding-right: 0; }
 
 
-/* Spacing
+/* ** Spacing
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 button,
 .button {
@@ -262,7 +262,7 @@ form {
   margin-bottom: 2.5rem; }
 
 
-/* Utilities
+/* ** Utilities
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .u-full-width {
   width: 100%;
@@ -276,7 +276,7 @@ form {
   float: left; }
 
 
-/* Misc
+/* ** Misc
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 hr {
   margin-top: 3rem;
@@ -285,7 +285,7 @@ hr {
   border-top: 1px solid #E1E1E1; }
 
 
-/* Clearing
+/* ** Clearing
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 /* Self Clearing Goodness */
@@ -297,7 +297,7 @@ hr {
   clear: both; }
 
 
-/* Media Queries
+/* ** Media Queries
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 /*
 Note: The best way to structure the use of media queries is to create the queries
@@ -323,7 +323,7 @@ there.
 @media (min-width: 1200px) {}
 
 
-/* Layout */
+/* * Get Typed */
 
 html,
 body {
@@ -532,6 +532,39 @@ h1.title {
     color: navy;
 }
 
+.INFO,
+.TYPE_INFO {
+  display: table;
+}
+
+.TYPE_INFO:before {
+  content: 'Info';
+  text-transform: uppercase;
+  color: navy;
+}
+
+dd {
+    width: 100%;
+}
+
+.INFO > dl,
+.TYPE_INFO > dl {
+  margin-top: 0;
+}
+
+.INFO dt,
+.TYPE_INFO dt {
+  font-weight: normal;
+  display: table-cell;
+  float: left;
+  color: gray;
+  text-transform: lowercase;
+}
+
+.INFO dt {
+    width: 5rem;
+}
+
 #content {
     margin: 48px 270px 0 0;
     margin-left: 250px;
@@ -594,4 +627,8 @@ h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
 .root-navigation + *,
 .branch-navigation + * {
     margin-top: 28px;
+}
+
+figure {
+    margin: 0;
 }
