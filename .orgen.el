@@ -1,5 +1,5 @@
 ("Get Typed"
- :use-timestamps nil
+ :use-timestamps t
  :babel-header-args (((:mkdirp . "yes")
                       (:exports . "code")
                       (:noweb . "yes"))
