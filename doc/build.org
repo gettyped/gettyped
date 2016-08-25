@@ -3,7 +3,8 @@
 #+EMAIL:  jedahu@gmail.com
 #+DATE:   [2016-08-25 Thu]
 
-* build.sbt
+* Scala project
+** build.sbt
 #+BEGIN_SRC scala :tangle ../scala/build.sbt
   enablePlugins(ScalaJSPlugin)
 
@@ -15,22 +16,22 @@
   scalaSource in Test := baseDirectory.value / "test"
 #+END_SRC
 
-* project/build.properties
+** project/build.properties
 #+BEGIN_SRC :tangle ../scala/project/build.properties
 sbt.version=0.13.12
 #+END_SRC
 
-* project/plugins.sbt
+** project/plugins.sbt
 #+BEGIN_SRC scala :tangle ../scala/project/plugins.sbt
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.11")
 #+END_SRC
 
-* GIST_ID
+** GIST_ID
 #+BEGIN_SRC text :tangle ../scala/GIST_ID
   1b8808f797de1909ac95371eaf1ed97b
 #+END_SRC
 
-* shell.nix
+** shell.nix
 #+BEGIN_SRC nix :tangle ../scala/shell.nix
   with import <nixpkgs> {};
   stdenv.mkDerivation {
@@ -39,4 +40,16 @@ addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.11")
     shellHook = ''
     '';
   }
+#+END_SRC
+
+
+* Fiddle project
+** README.org
+#+BEGIN_SRC org :tangle ../scala-fiddle/README.org
+  ,#+TITLE:  Get Typed Fiddles
+  ,#+AUTHOR: Jeremy Hughes
+  ,#+EMAIL:  jedahu@gmail.com
+  ,#+DATE:   [2016-08-25 Thu]
+
+  Standalone single-file fiddles for use with [[http://www.scala-js-fiddle.com]].
 #+END_SRC

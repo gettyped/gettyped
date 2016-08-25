@@ -9,4 +9,4 @@ after_success:
   - echo "DEPLOYING"
   - ls -R html
   - echo "$GIST_TOKEN" >~/.gist
-  - ./build.sh push-gist publish
+  - ./build.sh push-gist push-firebase
